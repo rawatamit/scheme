@@ -15,13 +15,13 @@ private:
     bool eof_;
     std::istream& in_;
     std::string const& description_;
-    
+
     int readChar();
     void skipWhitespace();
     Scheme::SchemeObject* readFixnumOrMinus();
     Scheme::SchemeObject* readBooleanOrCharacter();
     Scheme::SchemeObject* readString();
-    Scheme::SchemeObject* readPair();
+    Scheme::SchemeObject* readPair(int start_line, int start_col);
 public:
     Reader(std::istream& in_, std::string const& description);
     virtual ~Reader();

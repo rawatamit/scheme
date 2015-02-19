@@ -24,8 +24,9 @@ std::string const& Scheme::Reader::getDescription() const {
 }
 
 Scheme::SchemeObject* Scheme::Reader::read() {
+    int start_line, start_col;
     skipWhitespace(); // start with a valid character
-    
+
     switch (ch_) {
     case '-':
         return readFixnumOrMinus();
@@ -34,30 +35,33 @@ Scheme::SchemeObject* Scheme::Reader::read() {
     case '"':
         return readString();
     case '(':
-        return readPair();
+        start_line = line_;
+        start_col = column_;
+        readChar(); // skip '('
+        return readPair(start_line, start_col);
     case EOF:
         eof_ = true;
         return nullptr;
     }
-    
+
     if (isdigit(ch_)) {
         return readFixnumOrMinus();
     }
-    
+
     readChar(); // skip this character
     return read();
 }
 
 int Scheme::Reader::readChar() {
     ch_ = in_.get();
-    
+
     if (ch_ == '\n') {
         ++line_;
         column_ = 0;
     } else {
         ++column_;
     }
-    
+
     return ch_;
 }
 
@@ -69,18 +73,18 @@ void Scheme::Reader::skipWhitespace() {
 Scheme::SchemeObject* Scheme::Reader::readFixnumOrMinus() {
     int line = line_, scol = column_;
     std::string text;
-    
+
     // do we have a negative number
     if (ch_ == '-') {
         text.push_back('-');
         readChar();
     }
-    
+
     do {
         text.push_back(ch_);
         readChar();
     } while (isdigit(ch_));
-    
+
     return new Scheme::Fixnum(
             new Token(line, scol, text.size(), text, Scheme::TokenType::T_FIXNUM));
 }
@@ -90,7 +94,7 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
     std::string text;
     text.push_back('#');
     readChar(); // eat '#'
-    
+
     // boolean
     if (ch_ == 't' or ch_ == 'f') {
         text.push_back(ch_);
@@ -103,7 +107,7 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
         switch (ch_) {
         case EOF:
             throw new Scheme::ReaderException("eof in character literal");
-        
+
         // 'space' or 's'
         case 's':
             text.push_back('s');
@@ -121,7 +125,7 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
             }
             return new Scheme::Character(
                 new Token(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
-        
+
         // 'newline' or 'n'
         case 'n':
             text.push_back('n');
@@ -139,7 +143,7 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
             }
             return new Scheme::Character(
                 new Token(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
-        
+
         default:
             text.push_back(ch_);
             readChar(); // eat this character
@@ -147,7 +151,7 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
                 new Token(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
         }
     }
-    
+
     throw new Scheme::ReaderException("unknown boolean or character literal");
 }
 
@@ -155,7 +159,7 @@ Scheme::SchemeObject* Scheme::Reader::readString() {
     int line = line_, scol = column_;
     std::string text;
     readChar(); // eat '"'
-    
+
     while (ch_ != '"') {
         switch (ch_) {
         case EOF:
@@ -172,27 +176,26 @@ Scheme::SchemeObject* Scheme::Reader::readString() {
             text.push_back(ch_);
             break;
         }
-        
+
         readChar();
     }
-    
+
     readChar(); // eat '"'
     return new Scheme::String(
         new Token(line, scol, text.size(), text, Scheme::TokenType::T_STRING));
 }
 
-Scheme::SchemeObject* Scheme::Reader::readPair() {
-    int line = line_, scol = column_;
-    readChar(); // eat '('
+// FIXME: line number information might not be correct
+Scheme::SchemeObject* Scheme::Reader::readPair(int start_line, int start_col) {
     skipWhitespace();
-    
+
     if (ch_ == ')') {
         Scheme::Pair* empty_list =
-            Scheme::Pair::getEmptyList(line, scol, line_, column_);
+            Scheme::Pair::getEmptyList(start_line, start_col, line_, column_);
         readChar(); // skip ')'
         return empty_list;
     }
-    
+
     Scheme::SchemeObject* car = read();
     skipWhitespace();
     if (ch_ == '.') { // read improper list
@@ -202,7 +205,7 @@ Scheme::SchemeObject* Scheme::Reader::readPair() {
             skipWhitespace();
             if (ch_ == ')') {
                 Scheme::Pair* pair =
-                    new Scheme::Pair(line, scol, line_, column_, car, cdr);
+                    new Scheme::Pair(start_line, start_col, line_, column_, car, cdr);
                 readChar(); // skip ')'
                 return pair;
             } else {
@@ -212,7 +215,7 @@ Scheme::SchemeObject* Scheme::Reader::readPair() {
             throw Scheme::ReaderException("dot not followed by delimiter");
         }
     } else { // read proper list
-        Scheme::SchemeObject* cdr = readPair();
-        return new Scheme::Pair(line, scol, line_, column_, car, cdr);
+        Scheme::SchemeObject* cdr = readPair(start_line, start_col);
+        return new Scheme::Pair(start_line, start_col, line_, column_, car, cdr);
     }
 }
