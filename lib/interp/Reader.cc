@@ -5,6 +5,7 @@
 #include "AST/Character.h"
 #include "AST/String.h"
 #include "AST/Pair.h"
+#include "AST/Symbol.h"
 
 Scheme::Reader::Reader(std::istream& in, const std::string& description) :
     ch_(' '), line_(1), column_(0), eof_(false),
@@ -28,7 +29,7 @@ Scheme::SchemeObject* Scheme::Reader::read() {
     skipWhitespace(); // start with a valid character
 
     switch (ch_) {
-    case '-':
+    case '-': // FIXME: be more precise
         return readFixnumOrMinus();
     case '#':
         return readBooleanOrCharacter();
@@ -46,6 +47,8 @@ Scheme::SchemeObject* Scheme::Reader::read() {
 
     if (isdigit(ch_)) {
         return readFixnumOrMinus();
+    } else if (isInitial(ch_) or ((ch_ == '+' or ch_ == '-'))) { // FIXME: be more precise
+        return readSymbol();
     }
 
     readChar(); // skip this character
@@ -68,6 +71,17 @@ int Scheme::Reader::readChar() {
 void Scheme::Reader::skipWhitespace() {
     while (isspace(ch_))
         readChar();
+}
+
+bool Scheme::Reader::isInitial(int c) const {
+    return isalpha(c) || c == '*' || c == '/' || c == '>' ||
+           c == '<' || c == '=' || c == '?' || c == '!';
+}
+
+bool Scheme::Reader::isDelimiter(int c) const {
+    return isspace(c) || c == EOF ||
+           c == '('   || c == ')' ||
+           c == '"'   || c == ';';
 }
 
 Scheme::SchemeObject* Scheme::Reader::readFixnumOrMinus() {
@@ -200,7 +214,7 @@ Scheme::SchemeObject* Scheme::Reader::readPair(int start_line, int start_col) {
     skipWhitespace();
     if (ch_ == '.') { // read improper list
         readChar(); // eat '.'
-        if (ch_ == ' ' or ch_ == '\t' or ch_ == '\n') {
+        if (isDelimiter(ch_)) {
             Scheme::SchemeObject* cdr = read();
             skipWhitespace();
             if (ch_ == ')') {
@@ -217,5 +231,22 @@ Scheme::SchemeObject* Scheme::Reader::readPair(int start_line, int start_col) {
     } else { // read proper list
         Scheme::SchemeObject* cdr = readPair(start_line, start_col);
         return new Scheme::Pair(start_line, start_col, line_, column_, car, cdr);
+    }
+}
+
+Scheme::SchemeObject* Scheme::Reader::readSymbol() {
+    int line = line_, scol = column_;
+    std::string text;
+    
+    while (isInitial(ch_) or isdigit(ch_) or ch_ == '+' or ch_ == '-') {
+        text.push_back(ch_);
+        readChar();
+    }
+    
+    if (isDelimiter(ch_)) {
+        return Scheme::Symbol::getSymbol(
+            new Token(line, scol, text.size(), text, Scheme::TokenType::T_SYMBOL));
+    } else {
+        throw Scheme::ReaderException("symbol not followed by delimiter");
     }
 }

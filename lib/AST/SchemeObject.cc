@@ -35,3 +35,7 @@ bool Scheme::SchemeObject::isEmptyList() const {
 bool Scheme::SchemeObject::isPair() const {
     return getType() == PAIR_TY;
 }
+
+bool Scheme::SchemeObject::isSymbol() const {
+    return getType() == SYMBOL_TY;
+}

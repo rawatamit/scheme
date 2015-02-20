@@ -18,10 +18,13 @@ private:
 
     int readChar();
     void skipWhitespace();
+    bool isInitial(int ch) const;
+    bool isDelimiter(int ch) const;
     Scheme::SchemeObject* readFixnumOrMinus();
     Scheme::SchemeObject* readBooleanOrCharacter();
     Scheme::SchemeObject* readString();
     Scheme::SchemeObject* readPair(int start_line, int start_col);
+    Scheme::SchemeObject* readSymbol();
 public:
     Reader(std::istream& in_, std::string const& description);
     virtual ~Reader();

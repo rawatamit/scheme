@@ -4,6 +4,7 @@
 #include "AST/Character.h"
 #include "AST/String.h"
 #include "AST/Pair.h"
+#include "AST/Symbol.h"
 
 namespace {
 void printFixnum(Scheme::Fixnum* obj, std::ostream& out) {
@@ -50,6 +51,10 @@ void printPair(Scheme::Pair* obj, std::ostream& out) {
         print(cdr, out);
     }
 }
+
+void printSymbol(Scheme::Symbol* obj, std::ostream& out) {
+    out << obj->getValue()->getText();
+}
 } // anonymous namespace
 
 void Scheme::print(Scheme::SchemeObject* obj, std::ostream& out) {
@@ -74,6 +79,8 @@ void Scheme::print(Scheme::SchemeObject* obj, std::ostream& out) {
         printPair(dynamic_cast<Scheme::Pair*>(obj), out);
         out << ')';
         break;
+    case Scheme::SchemeObject::SYMBOL_TY:
+        printSymbol(dynamic_cast<Scheme::Symbol*>(obj), out);
     default:
         break;
     }
