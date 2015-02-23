@@ -16,7 +16,8 @@ private:
     std::istream& in_;
     std::string const& description_;
 
-    int readChar();
+    int nextChar();
+    void consume(int c);
     void skipWhitespace();
     bool isInitial(int ch) const;
     bool isDelimiter(int ch) const;

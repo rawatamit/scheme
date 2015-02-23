@@ -2,8 +2,8 @@
 #include "interp/Reader.h"
 #include "interp/Eval.h"
 #include "interp/Print.h"
-#include "interp/ReaderException.h"
 #include <iostream>
+#include <stdexcept>
 
 void repl(Scheme::Reader& reader) {
     std::cout << "> ";
@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     while (not reader.isEof()) {
         try {
             repl(reader);
-        } catch (Scheme::ReaderException const* e) {
+        } catch (std::runtime_error const* e) {
             std::cout << e->what() << '\n';
         }
     }

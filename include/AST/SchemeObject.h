@@ -12,6 +12,7 @@ public:
         EMPTYLIST_TY,
         PAIR_TY,
         SYMBOL_TY,
+        QUOTE_TY,
     };
 
     SchemeObject(ObjectTy type);
@@ -24,6 +25,7 @@ public:
     bool isEmptyList() const;
     bool isPair() const;
     bool isSymbol() const;
+    bool isQuote() const;
 private:
     ObjectTy type_; // type of this object
 };

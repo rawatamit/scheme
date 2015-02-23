@@ -39,3 +39,7 @@ bool Scheme::SchemeObject::isPair() const {
 bool Scheme::SchemeObject::isSymbol() const {
     return getType() == SYMBOL_TY;
 }
+
+bool Scheme::SchemeObject::isQuote() const {
+    return getType() == QUOTE_TY;
+}

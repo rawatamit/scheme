@@ -4,4 +4,5 @@ add_library(AST
             SchemeObject.cc
             Fixnum.cc Boolean.cc
             Character.cc String.cc
-            Pair.cc Symbol.cc)
+            Pair.cc Symbol.cc
+            Quote.cc)

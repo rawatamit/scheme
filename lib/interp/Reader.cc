@@ -6,6 +6,7 @@
 #include "AST/String.h"
 #include "AST/Pair.h"
 #include "AST/Symbol.h"
+#include "AST/Quote.h"
 
 Scheme::Reader::Reader(std::istream& in, const std::string& description) :
     ch_(' '), line_(1), column_(0), eof_(false),
@@ -38,8 +39,11 @@ Scheme::SchemeObject* Scheme::Reader::read() {
     case '(':
         start_line = line_;
         start_col = column_;
-        readChar(); // skip '('
+        nextChar(); // skip '('
         return readPair(start_line, start_col);
+    case '\'':
+        nextChar(); // skip '
+        return new Scheme::Quote(read());
     case EOF:
         eof_ = true;
         return nullptr;
@@ -51,11 +55,11 @@ Scheme::SchemeObject* Scheme::Reader::read() {
         return readSymbol();
     }
 
-    readChar(); // skip this character
+    nextChar(); // skip this character
     return read();
 }
 
-int Scheme::Reader::readChar() {
+int Scheme::Reader::nextChar() {
     ch_ = in_.get();
 
     if (ch_ == '\n') {
@@ -68,9 +72,17 @@ int Scheme::Reader::readChar() {
     return ch_;
 }
 
+void Scheme::Reader::consume(int c) {
+    if (c == ch_) {
+        nextChar();
+    } else {
+        throw Scheme::ReaderException("expected 'c'"); // FIXME: fix this
+    }
+}
+
 void Scheme::Reader::skipWhitespace() {
     while (isspace(ch_))
-        readChar();
+        nextChar();
 }
 
 bool Scheme::Reader::isInitial(int c) const {
@@ -91,12 +103,12 @@ Scheme::SchemeObject* Scheme::Reader::readFixnumOrMinus() {
     // do we have a negative number
     if (ch_ == '-') {
         text.push_back('-');
-        readChar();
+        nextChar();
     }
 
     do {
         text.push_back(ch_);
-        readChar();
+        nextChar();
     } while (isdigit(ch_));
 
     return new Scheme::Fixnum(
@@ -107,17 +119,17 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
     int line = line_, scol = column_;
     std::string text;
     text.push_back('#');
-    readChar(); // eat '#'
+    consume('#');
 
     // boolean
     if (ch_ == 't' or ch_ == 'f') {
         text.push_back(ch_);
-        readChar(); // skip 't' or 'f'
+        nextChar(); // skip 't' or 'f'
         return Scheme::Boolean::get(
             new Token(line, scol, text.size(), text, Scheme::TokenType::T_BOOLEAN));
     } else if (ch_ == '\\') { // character
         text.push_back('\\');
-        readChar(); // eat '\'
+        nextChar(); // eat '\'
         switch (ch_) {
         case EOF:
             throw new Scheme::ReaderException("eof in character literal");
@@ -125,13 +137,13 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
         // 'space' or 's'
         case 's':
             text.push_back('s');
-            readChar(); // eat 's'
+            nextChar(); // eat 's'
             if (ch_ == 'p') {
                 const char* s = "pace";
                 for (int i = 0; s[i] != '\0'; ++i) {
                      if (ch_ == s[i]) {
                         text.push_back(ch_);
-                        readChar();
+                        nextChar();
                     } else {
                         throw new Scheme::ReaderException("incomplete character literal");
                     }
@@ -143,13 +155,13 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
         // 'newline' or 'n'
         case 'n':
             text.push_back('n');
-            readChar(); // eat 'n'
+            nextChar(); // eat 'n'
             if (ch_ == 'e') {
                 const char* s = "ewline";
                 for (int i = 0; s[i] != '\0'; ++i) {
                     if (ch_ == s[i]) {
                         text.push_back(ch_);
-                        readChar();
+                        nextChar();
                     } else {
                         throw new Scheme::ReaderException("incomplete character literal");
                     }
@@ -160,7 +172,7 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
 
         default:
             text.push_back(ch_);
-            readChar(); // eat this character
+            nextChar(); // eat this character
             return new Scheme::Character(
                 new Token(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
         }
@@ -172,14 +184,14 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
 Scheme::SchemeObject* Scheme::Reader::readString() {
     int line = line_, scol = column_;
     std::string text;
-    readChar(); // eat '"'
+    nextChar(); // eat '"'
 
     while (ch_ != '"') {
         switch (ch_) {
         case EOF:
             throw new Scheme::ReaderException("eof in string literal");
         case '\\':
-            readChar(); // eat '\'
+            nextChar(); // eat '\'
             if (ch_ == 'n') {
                 text.push_back('\n');
             } else {
@@ -191,10 +203,10 @@ Scheme::SchemeObject* Scheme::Reader::readString() {
             break;
         }
 
-        readChar();
+        nextChar();
     }
 
-    readChar(); // eat '"'
+    nextChar(); // eat '"'
     return new Scheme::String(
         new Token(line, scol, text.size(), text, Scheme::TokenType::T_STRING));
 }
@@ -206,21 +218,31 @@ Scheme::SchemeObject* Scheme::Reader::readPair(int start_line, int start_col) {
     if (ch_ == ')') {
         Scheme::Pair* empty_list =
             Scheme::Pair::getEmptyList(start_line, start_col, line_, column_);
-        readChar(); // skip ')'
+        nextChar(); // skip ')'
         return empty_list;
     }
 
     Scheme::SchemeObject* car = read();
     skipWhitespace();
-    if (ch_ == '.') { // read improper list
-        readChar(); // eat '.'
+    
+    // check if it is a quote
+    if (car->isSymbol()
+      and
+        dynamic_cast<Scheme::Symbol*>(car)->getValue()->getText() == "quote")
+    {
+        Scheme::SchemeObject* cdr = read();
+        skipWhitespace();
+        consume(')');
+        return new Scheme::Quote(cdr);
+    } else if (ch_ == '.') { // read improper list
+        nextChar(); // eat '.'
         if (isDelimiter(ch_)) {
             Scheme::SchemeObject* cdr = read();
             skipWhitespace();
             if (ch_ == ')') {
                 Scheme::Pair* pair =
                     new Scheme::Pair(start_line, start_col, line_, column_, car, cdr);
-                readChar(); // skip ')'
+                nextChar(); // skip ')'
                 return pair;
             } else {
                 throw Scheme::ReaderException("list not properly terminated");
@@ -240,7 +262,7 @@ Scheme::SchemeObject* Scheme::Reader::readSymbol() {
     
     while (isInitial(ch_) or isdigit(ch_) or ch_ == '+' or ch_ == '-') {
         text.push_back(ch_);
-        readChar();
+        nextChar();
     }
     
     if (isDelimiter(ch_)) {
