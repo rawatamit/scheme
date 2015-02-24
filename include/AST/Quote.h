@@ -10,7 +10,7 @@ private:
 public:
     Quote(SchemeObject* obj);
     virtual ~Quote();
-    SchemeObject* getTextOfQuotation() const;
+    SchemeObject const* getTextOfQuotation() const;
 };
 } // namespace Scheme
 

@@ -8,6 +8,6 @@ Scheme::Quote::Quote(SchemeObject* obj) :
 Scheme::Quote::~Quote() {
 }
 
-Scheme::SchemeObject* Scheme::Quote::getTextOfQuotation() const {
+Scheme::SchemeObject const* Scheme::Quote::getTextOfQuotation() const {
     return obj_;
 }

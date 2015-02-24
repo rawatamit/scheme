@@ -7,6 +7,8 @@
 #include "AST/Pair.h"
 #include "AST/Symbol.h"
 #include "AST/Quote.h"
+#include "AST/Definition.h"
+#include "AST/Redefinition.h"
 
 Scheme::Reader::Reader(std::istream& in, const std::string& description) :
     ch_(' '), line_(1), column_(0), eof_(false),
@@ -40,7 +42,7 @@ Scheme::SchemeObject* Scheme::Reader::read() {
         start_line = line_;
         start_col = column_;
         nextChar(); // skip '('
-        return readPair(start_line, start_col);
+        return processPair(readPair(start_line, start_col));
     case '\'':
         nextChar(); // skip '
         return new Scheme::Quote(read());
@@ -211,6 +213,51 @@ Scheme::SchemeObject* Scheme::Reader::readString() {
         new Token(line, scol, text.size(), text, Scheme::TokenType::T_STRING));
 }
 
+// FIXME: can do better
+Scheme::SchemeObject* Scheme::Reader::processPair(Scheme::SchemeObject* obj) {
+    Scheme::Pair* pair = dynamic_cast<Scheme::Pair*>(obj);
+    if (pair->getCar()->isSymbol()) {
+        Scheme::Symbol* sym = dynamic_cast<Scheme::Symbol*>(pair->getCar());
+        std::string const& name = sym->getValue()->getText();
+        if (name == "quote") {
+            if (pair->getCdr() != nullptr) {
+                return new Scheme::Quote(pair->getCdr());
+            } else {
+                throw Scheme::ReaderException("quote form not proper");
+            }
+        } else if (name == "define") {
+            Scheme::Pair* list = dynamic_cast<Scheme::Pair*>(pair->getCdr());
+            //Scheme::SchemeObject* var = list->getCar();
+            //Scheme::SchemeObject* val = list->getCdr()->getCar();
+            if (list == nullptr) {// or var == nullptr or val == nullptr) {
+                throw Scheme::ReaderException("define form not proper");
+            } else {
+                Scheme::SchemeObject* var = list->getCar();
+                Scheme::SchemeObject* val =
+                    dynamic_cast<Scheme::Pair*>(list->getCdr())->getCar();
+                // FIXME: don't want nullptr in define
+                return new Scheme::Definition(var, val);
+            }
+        } else if (name == "set!") {
+            Scheme::Pair* list = dynamic_cast<Scheme::Pair*>(pair->getCdr());
+            //Scheme::SchemeObject* var = list->getCar();
+            //Scheme::SchemeObject* val = list->getCdr();
+            if (list == nullptr) {
+                throw Scheme::ReaderException("set! form not proper");
+            } else {
+                Scheme::SchemeObject* var = list->getCar();
+                Scheme::SchemeObject* val =
+                    dynamic_cast<Scheme::Pair*>(list->getCdr())->getCar();
+                // FIXME: don't want nullptr in set!
+                return new Scheme::Redefinition(var, val);
+            }
+        } else {
+            return pair;
+        }
+    }
+    return pair;
+}
+
 // FIXME: line number information might not be correct
 Scheme::SchemeObject* Scheme::Reader::readPair(int start_line, int start_col) {
     skipWhitespace();
@@ -225,16 +272,7 @@ Scheme::SchemeObject* Scheme::Reader::readPair(int start_line, int start_col) {
     Scheme::SchemeObject* car = read();
     skipWhitespace();
     
-    // check if it is a quote
-    if (car->isSymbol()
-      and
-        dynamic_cast<Scheme::Symbol*>(car)->getValue()->getText() == "quote")
-    {
-        Scheme::SchemeObject* cdr = read();
-        skipWhitespace();
-        consume(')');
-        return new Scheme::Quote(cdr);
-    } else if (ch_ == '.') { // read improper list
+    if (ch_ == '.') { // read improper list
         nextChar(); // eat '.'
         if (isDelimiter(ch_)) {
             Scheme::SchemeObject* cdr = read();

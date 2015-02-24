@@ -25,6 +25,7 @@ private:
     Scheme::SchemeObject* readBooleanOrCharacter();
     Scheme::SchemeObject* readString();
     Scheme::SchemeObject* readPair(int start_line, int start_col);
+    Scheme::SchemeObject* processPair(Scheme::SchemeObject* obj);
     Scheme::SchemeObject* readSymbol();
 public:
     Reader(std::istream& in_, std::string const& description);

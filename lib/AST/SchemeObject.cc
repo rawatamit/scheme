@@ -43,3 +43,11 @@ bool Scheme::SchemeObject::isSymbol() const {
 bool Scheme::SchemeObject::isQuote() const {
     return getType() == QUOTE_TY;
 }
+
+bool Scheme::SchemeObject::isDefinition() const {
+    return getType() == DEFINE_TY;
+}
+
+bool Scheme::SchemeObject::isRedefinition() const {
+    return getType() == REDEFINE_TY;
+}

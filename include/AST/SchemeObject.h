@@ -5,7 +5,7 @@ namespace Scheme {
 class SchemeObject {
 public:
     enum ObjectTy {
-        FIXNUM_TY,
+        FIXNUM_TY = 0,
         BOOLEAN_TY,
         CHARACTER_TY,
         STRING_TY,
@@ -13,6 +13,8 @@ public:
         PAIR_TY,
         SYMBOL_TY,
         QUOTE_TY,
+        DEFINE_TY,
+        REDEFINE_TY,
     };
 
     SchemeObject(ObjectTy type);
@@ -26,6 +28,8 @@ public:
     bool isPair() const;
     bool isSymbol() const;
     bool isQuote() const;
+    bool isDefinition() const;
+    bool isRedefinition() const;
 private:
     ObjectTy type_; // type of this object
 };

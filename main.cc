@@ -1,28 +1,37 @@
 #include "AST/SchemeObject.h"
+#include "interp/Environment.h"
 #include "interp/Reader.h"
 #include "interp/Eval.h"
 #include "interp/Print.h"
 #include <iostream>
 #include <stdexcept>
 
-void repl(Scheme::Reader& reader) {
+void repl(Scheme::Reader& reader, Scheme::Environment* env) {
     std::cout << "> ";
-    Scheme::SchemeObject* obj = reader.read();
+    Scheme::SchemeObject const* obj = reader.read();
+    
+    // FIXME: fix the try catch block
     if (obj) {
-        print(eval(obj), std::cout);
-        std::cout << '\n';
+        try {
+            Scheme::SchemeObject const* val = eval(obj, env);
+            if (val) {
+                print(val, std::cout);
+                std::cout << '\n';
+            }
+        } catch (std::runtime_error const* e) {
+            std::cerr << e->what() << '\n';
+        } catch (...) {
+            std::cerr << "something bad happened\n";
+        }
     }
 }
 
 int main(int argc, char **argv) {
     Scheme::Reader reader(std::cin, "<stdin>");
+    Scheme::Environment* env = new Scheme::Environment();
     
     while (not reader.isEof()) {
-        try {
-            repl(reader);
-        } catch (std::runtime_error const* e) {
-            std::cout << e->what() << '\n';
-        }
+        repl(reader, env);
     }
     
     std::cout << '\n';

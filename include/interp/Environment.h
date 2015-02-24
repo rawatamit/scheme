@@ -6,15 +6,15 @@
 namespace Scheme {
 class Environment {
 private:
-    Frame* globalframe_;
-    Frame* currentframe_;
+    Scheme::Frame* globalframe_;
+    Scheme::Frame* currentframe_;
 public:
     Environment();
     virtual ~Environment();
-    Frame* getGlobalFrame();
-    Frame const* getGlobalFrame() const;
-    Frame* getCurrentFrame();
-    Frame const* getCurrentFrame() const;
+    Scheme::Frame* getGlobalFrame();
+    Scheme::Frame const* getGlobalFrame() const;
+    Scheme::Frame* getCurrentFrame();
+    Scheme::Frame const* getCurrentFrame() const;
     void beginFrame();
     void endFrame();
 };

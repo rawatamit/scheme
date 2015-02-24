@@ -7,19 +7,19 @@
 #include "AST/Symbol.h"
 
 namespace {
-void printFixnum(Scheme::Fixnum* obj, std::ostream& out) {
+void printFixnum(Scheme::Fixnum const* obj, std::ostream& out) {
     out << obj->getValue()->getText();
 }
 
-void printBoolean(Scheme::Boolean* obj, std::ostream& out) {
+void printBoolean(Scheme::Boolean const* obj, std::ostream& out) {
     out << obj->getValue()->getText();
 }
 
-void printCharacter(Scheme::Character* obj, std::ostream& out) {
+void printCharacter(Scheme::Character const* obj, std::ostream& out) {
     out << obj->getValue()->getText();
 }
 
-void printString(Scheme::String* obj, std::ostream& out) {
+void printString(Scheme::String const* obj, std::ostream& out) {
     out << '"';
     for (char ch : obj->getValue()->getText()) {
         switch (ch) {
@@ -40,47 +40,47 @@ void printString(Scheme::String* obj, std::ostream& out) {
     out << '"';
 }
 
-void printPair(Scheme::Pair* obj, std::ostream& out) {
+void printPair(Scheme::Pair const* obj, std::ostream& out) {
     print(obj->getCar(), out); // print car
-    Scheme::SchemeObject* cdr = obj->getCdr();
+    Scheme::SchemeObject const* cdr = obj->getCdr();
     if (cdr->isPair()) {
         out << ' ';
-        printPair(dynamic_cast<Scheme::Pair*>(cdr), out);
+        printPair(dynamic_cast<Scheme::Pair const*>(cdr), out);
     } else if (not cdr->isEmptyList()) {
         out << " . ";
         print(cdr, out);
     }
 }
 
-void printSymbol(Scheme::Symbol* obj, std::ostream& out) {
+void printSymbol(Scheme::Symbol const* obj, std::ostream& out) {
     out << obj->getValue()->getText();
 }
 } // anonymous namespace
 
-void Scheme::print(Scheme::SchemeObject* obj, std::ostream& out) {
+void Scheme::print(Scheme::SchemeObject const* obj, std::ostream& out) {
     switch (obj->getType()) {
     case Scheme::SchemeObject::FIXNUM_TY:
-        printFixnum(dynamic_cast<Scheme::Fixnum*>(obj), out);
+        printFixnum(dynamic_cast<Scheme::Fixnum const*>(obj), out);
         break;
     case Scheme::SchemeObject::BOOLEAN_TY:
-        printBoolean(dynamic_cast<Scheme::Boolean*>(obj), out);
+        printBoolean(dynamic_cast<Scheme::Boolean const*>(obj), out);
         break;
     case Scheme::SchemeObject::CHARACTER_TY:
-        printCharacter(dynamic_cast<Scheme::Character*>(obj), out);
+        printCharacter(dynamic_cast<Scheme::Character const*>(obj), out);
         break;
     case Scheme::SchemeObject::STRING_TY:
-        printString(dynamic_cast<Scheme::String*>(obj), out);
+        printString(dynamic_cast<Scheme::String const*>(obj), out);
         break;
     case Scheme::SchemeObject::EMPTYLIST_TY:
-        printPair(dynamic_cast<Scheme::Pair*>(obj), out);
+        printPair(dynamic_cast<Scheme::Pair const*>(obj), out);
         break;
     case Scheme::SchemeObject::PAIR_TY:
         out << '(';
-        printPair(dynamic_cast<Scheme::Pair*>(obj), out);
+        printPair(dynamic_cast<Scheme::Pair const*>(obj), out);
         out << ')';
         break;
     case Scheme::SchemeObject::SYMBOL_TY:
-        printSymbol(dynamic_cast<Scheme::Symbol*>(obj), out);
+        printSymbol(dynamic_cast<Scheme::Symbol const*>(obj), out);
     default:
         break;
     }

@@ -7,18 +7,23 @@
 namespace Scheme {
 class Frame {
 public:
-    typedef std::map<Scheme::SchemeObject*, Scheme::SchemeObject*> EnvMap;
+    typedef std::map<Scheme::SchemeObject const*, Scheme::SchemeObject const*> SymMap;
+    typedef SymMap::iterator SymMapIterator;
+    typedef SymMap::const_iterator SymMapConstIterator;
 private:
     Frame* enclosingframe_;
-    EnvMap symtab_;
-    EnvMap::iterator lookup(Scheme::SchemeObject* obj); // lookup var
+    SymMap symtab_;
+    SymMapIterator lookupIter(Scheme::SchemeObject const* obj);
+    SymMapConstIterator lookupConstIter(Scheme::SchemeObject const* obj) const;
 public:
     Frame(Frame* enclosingframe);
     virtual ~Frame();
+    Frame* getEnclosingFrame();
     Frame const* getEnclosingFrame() const;
-    Scheme::SchemeObject* lookup(Scheme::SchemeObject* obj) const;
-    void define(Scheme::SchemeObject* obj, Scheme::SchemeObject* val);
-    void redefine(Scheme::SchemeObject* obj, Scheme::SchemeObject* val);
+    SymMap const& getSymtab() const;
+    Scheme::SchemeObject const* lookup(Scheme::SchemeObject const* obj) const;
+    void define(Scheme::SchemeObject const* obj, Scheme::SchemeObject const* val);
+    void redefine(Scheme::SchemeObject const* obj, Scheme::SchemeObject const* val);
 };
 } // namespace Scheme
 

@@ -4,4 +4,4 @@ add_library(interp
             Token.cc Reader.cc
             Eval.cc Print.cc
             Frame.cc Environment.cc
-            ReaderException.cc EnvironmentException.cc)
+            ReaderException.cc EnvironmentException.cc EvalException.cc)

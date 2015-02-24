@@ -5,7 +5,7 @@
 #include <ostream>
 
 namespace Scheme {
-void print(Scheme::SchemeObject* obj, std::ostream& out);
+void print(Scheme::SchemeObject const* obj, std::ostream& out);
 } // namespace Scheme
 
 #endif
