@@ -9,6 +9,7 @@
 #include "AST/Quote.h"
 #include "AST/Definition.h"
 #include "AST/Redefinition.h"
+#include "AST/If.h"
 
 Scheme::Reader::Reader(std::istream& in, const std::string& description) :
     ch_(' '), line_(1), column_(0), eof_(false),
@@ -27,12 +28,12 @@ std::string const& Scheme::Reader::getDescription() const {
     return description_;
 }
 
-Scheme::SchemeObject* Scheme::Reader::read() {
+Scheme::SchemeObject const* Scheme::Reader::read() {
     int start_line, start_col;
     skipWhitespace(); // start with a valid character
 
     switch (ch_) {
-    case '-': // FIXME: be more precise
+    case '-':
         return readFixnumOrMinus();
     case '#':
         return readBooleanOrCharacter();
@@ -53,7 +54,7 @@ Scheme::SchemeObject* Scheme::Reader::read() {
 
     if (isdigit(ch_)) {
         return readFixnumOrMinus();
-    } else if (isInitial(ch_) or ((ch_ == '+' or ch_ == '-'))) { // FIXME: be more precise
+    } else if (isInitial(ch_) or ((ch_ == '+' or ch_ == '-'))) { // FIXME: ch_ CANNOT be '-' here
         return readSymbol();
     }
 
@@ -98,7 +99,7 @@ bool Scheme::Reader::isDelimiter(int c) const {
            c == '"'   || c == ';';
 }
 
-Scheme::SchemeObject* Scheme::Reader::readFixnumOrMinus() {
+Scheme::SchemeObject const* Scheme::Reader::readFixnumOrMinus() {
     int line = line_, scol = column_;
     std::string text;
 
@@ -108,16 +109,21 @@ Scheme::SchemeObject* Scheme::Reader::readFixnumOrMinus() {
         nextChar();
     }
 
-    do {
-        text.push_back(ch_);
-        nextChar();
-    } while (isdigit(ch_));
+    // is this the sub procedure?
+    if (not isdigit(ch_)) {
+        return Scheme::Symbol::getSymbol(new Token(line, scol, text.size(), text, Scheme::TokenType::T_SYMBOL));
+    } else {
+        do {
+            text.push_back(ch_);
+            nextChar();
+        } while (isdigit(ch_));
 
-    return new Scheme::Fixnum(
-            new Token(line, scol, text.size(), text, Scheme::TokenType::T_FIXNUM));
+        return new Scheme::Fixnum(
+                new Token(line, scol, text.size(), text, Scheme::TokenType::T_FIXNUM));
+    }
 }
 
-Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
+Scheme::SchemeObject const* Scheme::Reader::readBooleanOrCharacter() {
     int line = line_, scol = column_;
     std::string text;
     text.push_back('#');
@@ -132,6 +138,7 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
     } else if (ch_ == '\\') { // character
         text.push_back('\\');
         nextChar(); // eat '\'
+
         switch (ch_) {
         case EOF:
             throw new Scheme::ReaderException("eof in character literal");
@@ -153,6 +160,12 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
             }
             return new Scheme::Character(
                 new Token(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
+
+        // '\n'
+        case '\n':
+            text.append("newline");
+            return new Scheme::Character(
+                    new Token(line, scol, 1, text, Scheme::TokenType::T_CHAR));
 
         // 'newline' or 'n'
         case 'n':
@@ -183,7 +196,7 @@ Scheme::SchemeObject* Scheme::Reader::readBooleanOrCharacter() {
     throw new Scheme::ReaderException("unknown boolean or character literal");
 }
 
-Scheme::SchemeObject* Scheme::Reader::readString() {
+Scheme::SchemeObject const* Scheme::Reader::readString() {
     int line = line_, scol = column_;
     std::string text;
     nextChar(); // eat '"'
@@ -213,72 +226,90 @@ Scheme::SchemeObject* Scheme::Reader::readString() {
         new Token(line, scol, text.size(), text, Scheme::TokenType::T_STRING));
 }
 
-// FIXME: can do better
-Scheme::SchemeObject* Scheme::Reader::processPair(Scheme::SchemeObject* obj) {
-    Scheme::Pair* pair = dynamic_cast<Scheme::Pair*>(obj);
-    if (pair->getCar()->isSymbol()) {
-        Scheme::Symbol* sym = dynamic_cast<Scheme::Symbol*>(pair->getCar());
+Scheme::SchemeObject const* Scheme::Reader::processPair(Scheme::SchemeObject const* obj) {
+    Scheme::Pair const* pair = dynamic_cast<Scheme::Pair const*>(obj);
+
+    if (not pair->isEmptyList() and pair->getCar()->isSymbol()) {
+        Scheme::Symbol const* sym = dynamic_cast<Scheme::Symbol const*>(pair->getCar());
         std::string const& name = sym->getValue()->getText();
+
         if (name == "quote") {
-            if (pair->getCdr() != nullptr) {
-                return new Scheme::Quote(pair->getCdr());
-            } else {
+            if (pair->getCdr() == nullptr) {
                 throw Scheme::ReaderException("quote form not proper");
+            } else if (pair->getCdr()->isEmptyList()) {
+                    return pair->getCdr();
+            } else {
+                Scheme::Pair const* pcdr = dynamic_cast<Scheme::Pair const*>(pair->getCdr());
+                return new Scheme::Quote(pcdr->getCar());
             }
         } else if (name == "define") {
-            Scheme::Pair* list = dynamic_cast<Scheme::Pair*>(pair->getCdr());
-            //Scheme::SchemeObject* var = list->getCar();
-            //Scheme::SchemeObject* val = list->getCdr()->getCar();
-            if (list == nullptr) {// or var == nullptr or val == nullptr) {
-                throw Scheme::ReaderException("define form not proper");
+            if (auto list = dynamic_cast<Scheme::Pair const*>(pair->getCdr())) {
+                Scheme::SchemeObject const* var = list->getCar();
+                Scheme::SchemeObject const* val = list->getCadr();
+
+                if (var == nullptr or val == nullptr) {
+                    throw Scheme::ReaderException("define form not proper");
+                } else {
+                    return new Scheme::Definition(var, val);
+                }
             } else {
-                Scheme::SchemeObject* var = list->getCar();
-                Scheme::SchemeObject* val =
-                    dynamic_cast<Scheme::Pair*>(list->getCdr())->getCar();
-                // FIXME: don't want nullptr in define
-                return new Scheme::Definition(var, val);
+                throw Scheme::ReaderException("define form not proper");
             }
         } else if (name == "set!") {
-            Scheme::Pair* list = dynamic_cast<Scheme::Pair*>(pair->getCdr());
-            //Scheme::SchemeObject* var = list->getCar();
-            //Scheme::SchemeObject* val = list->getCdr();
-            if (list == nullptr) {
-                throw Scheme::ReaderException("set! form not proper");
+            if (auto list = dynamic_cast<Scheme::Pair const*>(pair->getCdr())) {
+                Scheme::SchemeObject const* var = list->getCar();
+                Scheme::SchemeObject const* val = list->getCadr();
+
+                if (var == nullptr or val == nullptr) {
+                    throw Scheme::ReaderException("set! form not proper");
+                } else {
+                    return new Scheme::Redefinition(var, val);
+                }
             } else {
-                Scheme::SchemeObject* var = list->getCar();
-                Scheme::SchemeObject* val =
-                    dynamic_cast<Scheme::Pair*>(list->getCdr())->getCar();
-                // FIXME: don't want nullptr in set!
-                return new Scheme::Redefinition(var, val);
+                throw Scheme::ReaderException("set! form not proper");
             }
-        } else {
-            return pair;
+        } else if (name == "if") {
+            if (auto list = dynamic_cast<Scheme::Pair const*>(pair->getCdr())) {
+                Scheme::SchemeObject const* predicate = list->getCar();
+                Scheme::SchemeObject const* consequent = list->getCadr();
+
+                if (predicate == nullptr or consequent == nullptr) {
+                    throw Scheme::ReaderException("if form not proper");
+                } else if (auto alternative = list->getCaddr()) {
+                    return new Scheme::If(predicate, consequent, alternative);
+                } else {
+                    return new Scheme::If(predicate, consequent, nullptr);
+                }
+            } else {
+                throw Scheme::ReaderException("if form not proper");
+            }
         }
     }
+
     return pair;
 }
 
 // FIXME: line number information might not be correct
-Scheme::SchemeObject* Scheme::Reader::readPair(int start_line, int start_col) {
+Scheme::SchemeObject const* Scheme::Reader::readPair(int start_line, int start_col) {
     skipWhitespace();
 
     if (ch_ == ')') {
-        Scheme::Pair* empty_list =
+        Scheme::Pair const* empty_list =
             Scheme::Pair::getEmptyList(start_line, start_col, line_, column_);
         nextChar(); // skip ')'
         return empty_list;
     }
 
-    Scheme::SchemeObject* car = read();
+    Scheme::SchemeObject const* car = read();
     skipWhitespace();
     
     if (ch_ == '.') { // read improper list
         nextChar(); // eat '.'
         if (isDelimiter(ch_)) {
-            Scheme::SchemeObject* cdr = read();
+            Scheme::SchemeObject const* cdr = read();
             skipWhitespace();
             if (ch_ == ')') {
-                Scheme::Pair* pair =
+                Scheme::Pair const* pair =
                     new Scheme::Pair(start_line, start_col, line_, column_, car, cdr);
                 nextChar(); // skip ')'
                 return pair;
@@ -289,12 +320,12 @@ Scheme::SchemeObject* Scheme::Reader::readPair(int start_line, int start_col) {
             throw Scheme::ReaderException("dot not followed by delimiter");
         }
     } else { // read proper list
-        Scheme::SchemeObject* cdr = readPair(start_line, start_col);
+        Scheme::SchemeObject const* cdr = readPair(start_line, start_col);
         return new Scheme::Pair(start_line, start_col, line_, column_, car, cdr);
     }
 }
 
-Scheme::SchemeObject* Scheme::Reader::readSymbol() {
+Scheme::SchemeObject const* Scheme::Reader::readSymbol() {
     int line = line_, scol = column_;
     std::string text;
     

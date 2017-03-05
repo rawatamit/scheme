@@ -6,10 +6,10 @@
 namespace Scheme {
 class Definition : public SchemeObject {
 private:
-    SchemeObject* var_;
-    SchemeObject* val_;
+    SchemeObject const* var_;
+    SchemeObject const* val_;
 public:
-    Definition(SchemeObject* var, SchemeObject* val);
+    Definition(SchemeObject const* var, SchemeObject const* val);
     virtual ~Definition();
     SchemeObject const* getVariable() const;
     SchemeObject const* getValue() const;

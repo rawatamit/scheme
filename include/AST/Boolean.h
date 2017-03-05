@@ -8,14 +8,18 @@ namespace Scheme {
 class Boolean : public SchemeObject {
 private:
     Token* value_;
-    bool isTrue_;
-    Boolean(Token* value, bool isTrue);
+    static Boolean const* dummy_true;
+    static Boolean const* dummy_false;
+    Boolean(Token* value);
+
 public:
     virtual ~Boolean();
-    static Boolean* get(Token* value);
+    static Boolean const* get(Token* value);
     bool isTrue() const;
     bool isFalse() const;
     Token* getValue() const;
+    static Scheme::Boolean const* getTrue();
+    static Scheme::Boolean const* getFalse();
 };
 } // namespace Scheme
 

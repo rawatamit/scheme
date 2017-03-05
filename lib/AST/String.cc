@@ -8,6 +8,6 @@ Scheme::String::String(Token* value) :
 Scheme::String::~String() {
 }
 
-Token* Scheme::String::getValue() const {
+Scheme::Token* Scheme::String::getValue() const {
     return value_;
 }

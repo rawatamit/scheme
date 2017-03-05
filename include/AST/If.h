@@ -1,8 +1,23 @@
-//
-// Created by amitrawt on 4/3/17.
-//
+#ifndef IF_H
+#define IF_H
 
-#ifndef SCHEME_IF_H
-#define SCHEME_IF_H
+#include "AST/SchemeObject.h"
 
-#endif //SCHEME_IF_H
+namespace Scheme {
+    class If : public SchemeObject {
+    private:
+        SchemeObject const* predicate_;
+        SchemeObject const* consequent_;
+        SchemeObject const* alternative_;
+
+    public:
+        If(SchemeObject const* predicate, SchemeObject const* consequent, SchemeObject const* alternative);
+        virtual ~If();
+
+        SchemeObject const* getPredicate() const;
+        SchemeObject const* getConsequent() const;
+        SchemeObject const* getAlternative() const;
+    };
+} // namespace Scheme
+
+#endif // IF_H

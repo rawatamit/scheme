@@ -72,7 +72,8 @@ void Scheme::print(Scheme::SchemeObject const* obj, std::ostream& out) {
         printString(dynamic_cast<Scheme::String const*>(obj), out);
         break;
     case Scheme::SchemeObject::EMPTYLIST_TY:
-        printPair(dynamic_cast<Scheme::Pair const*>(obj), out);
+        out << "()";
+        //printPair(dynamic_cast<Scheme::Pair const*>(obj), out);
         break;
     case Scheme::SchemeObject::PAIR_TY:
         out << '(';
@@ -81,6 +82,10 @@ void Scheme::print(Scheme::SchemeObject const* obj, std::ostream& out) {
         break;
     case Scheme::SchemeObject::SYMBOL_TY:
         printSymbol(dynamic_cast<Scheme::Symbol const*>(obj), out);
+        break;
+    case Scheme::SchemeObject::PROC_TY:
+        out << "<primitive>";
+        break;
     default:
         break;
     }

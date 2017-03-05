@@ -6,9 +6,9 @@
 namespace Scheme {
 class Quote : public SchemeObject {
 private:
-    SchemeObject* obj_;
+    SchemeObject const* obj_;
 public:
-    Quote(SchemeObject* obj);
+    Quote(SchemeObject const* obj);
     virtual ~Quote();
     SchemeObject const* getTextOfQuotation() const;
 };

@@ -1,6 +1,6 @@
 #include "AST/Redefinition.h"
 
-Scheme::Redefinition::Redefinition(SchemeObject* var, SchemeObject* val) :
+Scheme::Redefinition::Redefinition(SchemeObject const* var, SchemeObject const* val) :
     Scheme::SchemeObject(Scheme::SchemeObject::REDEFINE_TY),
     var_(var), val_(val)
 {

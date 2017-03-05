@@ -1,3 +1,0 @@
-- Add a lexer layer, the parser is unnecessarily complicated
-- Quote form does not work with empty list
-- Is there a better way to represent different constructs?

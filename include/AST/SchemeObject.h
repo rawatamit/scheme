@@ -15,6 +15,8 @@ public:
         QUOTE_TY,
         DEFINE_TY,
         REDEFINE_TY,
+        IF_TY,
+        PROC_TY,
     };
 
     SchemeObject(ObjectTy type);
@@ -30,6 +32,9 @@ public:
     bool isQuote() const;
     bool isDefinition() const;
     bool isRedefinition() const;
+    bool isIf() const;
+    bool isProcedure() const;
+
 private:
     ObjectTy type_; // type of this object
 };

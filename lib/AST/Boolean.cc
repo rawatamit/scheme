@@ -1,30 +1,43 @@
 #include "AST/Boolean.h"
 
-Scheme::Boolean::Boolean(Token* value, bool isTrue) :
+Scheme::Boolean const* Scheme::Boolean::dummy_true =
+        new Scheme::Boolean(new Token(-1, -1, 2, "#t", Scheme::TokenType::T_BOOLEAN));
+
+Scheme::Boolean const* Scheme::Boolean::dummy_false =
+        new Scheme::Boolean(new Token(-1, -1, 2, "#f", Scheme::TokenType::T_BOOLEAN));
+
+Scheme::Boolean::Boolean(Scheme::Token* value) :
     SchemeObject(Scheme::SchemeObject::BOOLEAN_TY),
-    value_(value), isTrue_(isTrue)
-{
-}
+    value_(value)
+{}
 
 Scheme::Boolean::~Boolean() {
 }
 
-Scheme::Boolean* Scheme::Boolean::get(Token* value) {
+Scheme::Boolean const* Scheme::Boolean::get(Scheme::Token* value) {
     if (value->getText() == "#t") {
-        return new Boolean(value, true);
+        return dummy_true;
     } else {
-        return new Boolean(value, false);
+        return dummy_false;
     }
 }
 
 bool Scheme::Boolean::isTrue() const {
-    return isTrue_;
+    return this == dummy_true;
 }
 
 bool Scheme::Boolean::isFalse() const {
-    return not isTrue_;
+    return not isTrue();
 }
 
-Token* Scheme::Boolean::getValue() const {
+Scheme::Token* Scheme::Boolean::getValue() const {
     return value_;
+}
+
+Scheme::Boolean const* Scheme::Boolean::getTrue() {
+    return dummy_true;
+}
+
+Scheme::Boolean const* Scheme::Boolean::getFalse() {
+    return dummy_false;
 }

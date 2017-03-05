@@ -8,6 +8,6 @@ Scheme::Fixnum::Fixnum(Token* value) :
 Scheme::Fixnum::~Fixnum() {
 }
 
-Token* Scheme::Fixnum::getValue() const {
+Scheme::Token* Scheme::Fixnum::getValue() const {
     return value_;
 }

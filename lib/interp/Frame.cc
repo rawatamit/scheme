@@ -24,43 +24,50 @@ Scheme::Frame::SymMap const& Scheme::Frame::getSymtab() const {
 }
 
 // FIXME: these two functions are same, code duplication!
-Scheme::Frame::SymMapIterator Scheme::Frame::lookupIter(Scheme::SchemeObject const* obj) {
+Scheme::Frame::SymMapIterator Scheme::Frame::lookupIter(const std::string& var) {
     Frame* frame = this;
+
     while (frame != nullptr) {
-        SymMapIterator it = frame->symtab_.find(obj);
+        SymMapIterator it = frame->symtab_.find(var);
+
         if (it != frame->symtab_.end()) {
             return it;
         } else {
             frame = frame->getEnclosingFrame();
         }
     }
+
     return symtab_.end();
 }
 
-Scheme::Frame::SymMapConstIterator Scheme::Frame::lookupConstIter(Scheme::SchemeObject const* obj) const {
+Scheme::Frame::SymMapConstIterator Scheme::Frame::lookupConstIter(const std::string& var) const {
     Frame const* frame = this;
+
     while (frame != nullptr) {
-        SymMapConstIterator it = frame->symtab_.find(obj);
+        SymMapConstIterator it = frame->symtab_.find(var);
+
         if (it != frame->symtab_.end()) {
             return it;
         } else {
             frame = frame->getEnclosingFrame();
         }
     }
+
     return symtab_.end();
 }
 
-Scheme::SchemeObject const* Scheme::Frame::lookup(Scheme::SchemeObject const* obj) const {
-    SymMapConstIterator it = lookupConstIter(obj);
+Scheme::SchemeObject const* Scheme::Frame::lookup(const std::string& var) const {
+    SymMapConstIterator it = lookupConstIter(var);
     return it == symtab_.end() ? nullptr : it->second;
 }
 
-void Scheme::Frame::define(Scheme::SchemeObject const* obj, Scheme::SchemeObject const* val) {
-    symtab_[obj] = val;
+void Scheme::Frame::define(const std::string& var, Scheme::SchemeObject const* val) {
+    symtab_[var] = val;
 }
 
-void Scheme::Frame::redefine(Scheme::SchemeObject const* obj, Scheme::SchemeObject const* val) {
-    SymMapIterator it = lookupIter(obj);
+void Scheme::Frame::redefine(const std::string& var, Scheme::SchemeObject const* val) {
+    SymMapIterator it = lookupIter(var);
+
     if (it != symtab_.end()) {
         it->second = val;
     } else {

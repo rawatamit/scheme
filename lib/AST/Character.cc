@@ -8,6 +8,6 @@ Scheme::Character::Character(Token* value) :
 Scheme::Character::~Character() {
 }
 
-Token* Scheme::Character::getValue() const {
+Scheme::Token* Scheme::Character::getValue() const {
     return value_;
 }

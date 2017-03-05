@@ -1,6 +1,6 @@
 #include "AST/Quote.h"
 
-Scheme::Quote::Quote(SchemeObject* obj) :
+Scheme::Quote::Quote(SchemeObject const* obj) :
     Scheme::SchemeObject(Scheme::SchemeObject::QUOTE_TY), obj_(obj)
 {
 }

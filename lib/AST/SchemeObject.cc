@@ -2,8 +2,7 @@
 
 Scheme::SchemeObject::SchemeObject(Scheme::SchemeObject::ObjectTy type) :
     type_(type)
-{
-}
+{}
 
 Scheme::SchemeObject::~SchemeObject() {
 }
@@ -50,4 +49,12 @@ bool Scheme::SchemeObject::isDefinition() const {
 
 bool Scheme::SchemeObject::isRedefinition() const {
     return getType() == REDEFINE_TY;
+}
+
+bool Scheme::SchemeObject::isIf() const {
+    return getType() == IF_TY;
+}
+
+bool Scheme::SchemeObject::isProcedure() const {
+    return getType() == PROC_TY;
 }

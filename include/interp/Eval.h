@@ -5,8 +5,11 @@
 #include "interp/Environment.h"
 
 namespace Scheme {
-Scheme::SchemeObject const* eval(Scheme::SchemeObject const* obj,
-                                 Scheme::Environment* env);
+    Scheme::SchemeObject const* eval(Scheme::SchemeObject const* obj,
+                                     Scheme::Environment* env);
+
+    Scheme::SchemeObject const* listOfValues(Scheme::SchemeObject const* obj,
+                                             Scheme::Environment* env);
 } // namespace Scheme
 
 #endif

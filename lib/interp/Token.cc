@@ -1,6 +1,6 @@
 #include "interp/Token.h"
 
-Token::Token(int line,
+Scheme::Token::Token(int line,
       int column,
       int length,
       std::string const& text,
@@ -9,25 +9,25 @@ Token::Token(int line,
     text_(text), type_(type) {
 }
 
-Token::~Token() {
+Scheme::Token::~Token() {
 }
 
-int Token::getLine() const {
+int Scheme::Token::getLine() const {
     return line_;
 }
 
-int Token::getColumn() const {
+int Scheme::Token::getColumn() const {
     return column_;
 }
 
-int Token::getLength() const {
+int Scheme::Token::getLength() const {
     return length_;
 }
 
-std::string const& Token::getText() const {
+std::string const& Scheme::Token::getText() const {
     return text_;
 }
 
-Scheme::TokenType Token::getType() const {
+Scheme::TokenType Scheme::Token::getType() const {
     return type_;
 }

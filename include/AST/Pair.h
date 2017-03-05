@@ -9,8 +9,8 @@ class Pair : public SchemeObject {
 private:
     int start_line_, start_col_;
     int end_line_, end_col_;
-    SchemeObject* car_;
-    SchemeObject* cdr_;
+    SchemeObject const* car_;
+    SchemeObject const* cdr_;
     
     Pair(Scheme::SchemeObject::ObjectTy type,
          int start_line, int start_col,
@@ -18,16 +18,19 @@ private:
 public:
     Pair(int start_line, int start_col,
          int end_line, int end_col,
-         SchemeObject* car, SchemeObject* cdr);
+         SchemeObject const* car, SchemeObject const* cdr);
     virtual ~Pair();
-    static Pair* getEmptyList(int start_line, int start_col,
-                              int end_line, int end_col);
+    static Pair const* getEmptyList(int start_line, int start_col,
+                                    int end_line, int end_col);
     SchemeObject const* getCar() const;
     SchemeObject const* getCdr() const;
-    SchemeObject* getCar();
-    SchemeObject* getCdr();
-    void setCar(SchemeObject* car);
-    void setCdr(SchemeObject* cdr);
+    SchemeObject const* getCaar() const;
+    SchemeObject const* getCdar() const;
+    SchemeObject const* getCadr() const;
+    SchemeObject const* getCddr() const;
+    SchemeObject const* getCaddr() const;
+    SchemeObject const* getCdddr() const;
+    SchemeObject const* getCadddr() const;
 };
 } // namespace Scheme
 
