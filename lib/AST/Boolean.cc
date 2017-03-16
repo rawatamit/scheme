@@ -1,12 +1,14 @@
 #include "AST/Boolean.h"
 
-Scheme::Boolean const* Scheme::Boolean::dummy_true =
-        new Scheme::Boolean(new Token(-1, -1, 2, "#t", Scheme::TokenType::T_BOOLEAN));
+Scheme::SchemeObjectPtr Scheme::Boolean::dummy_true =
+        std::shared_ptr<Scheme::Boolean>(new Scheme::Boolean(
+                std::make_shared<Token>(-1, -1, 2, "#t", Scheme::TokenType::T_BOOLEAN)));
 
-Scheme::Boolean const* Scheme::Boolean::dummy_false =
-        new Scheme::Boolean(new Token(-1, -1, 2, "#f", Scheme::TokenType::T_BOOLEAN));
+Scheme::SchemeObjectPtr Scheme::Boolean::dummy_false =
+        std::shared_ptr<Scheme::Boolean>(new Scheme::Boolean(
+                std::make_shared<Token>(-1, -1, 2, "#f", Scheme::TokenType::T_BOOLEAN)));
 
-Scheme::Boolean::Boolean(Scheme::Token* value) :
+Scheme::Boolean::Boolean(std::shared_ptr<Scheme::Token> value) :
     SchemeObject(Scheme::SchemeObject::BOOLEAN_TY),
     value_(value)
 {}
@@ -14,7 +16,7 @@ Scheme::Boolean::Boolean(Scheme::Token* value) :
 Scheme::Boolean::~Boolean() {
 }
 
-Scheme::Boolean const* Scheme::Boolean::get(Scheme::Token* value) {
+Scheme::SchemeObjectPtr Scheme::Boolean::get(std::shared_ptr<Scheme::Token> value) {
     if (value->getText() == "#t") {
         return dummy_true;
     } else {
@@ -23,21 +25,21 @@ Scheme::Boolean const* Scheme::Boolean::get(Scheme::Token* value) {
 }
 
 bool Scheme::Boolean::isTrue() const {
-    return this == dummy_true;
+    return this == dummy_true.get();
 }
 
 bool Scheme::Boolean::isFalse() const {
     return not isTrue();
 }
 
-Scheme::Token* Scheme::Boolean::getValue() const {
+std::shared_ptr<Scheme::Token> Scheme::Boolean::getValue() const {
     return value_;
 }
 
-Scheme::Boolean const* Scheme::Boolean::getTrue() {
+Scheme::SchemeObjectPtr Scheme::Boolean::getTrue() {
     return dummy_true;
 }
 
-Scheme::Boolean const* Scheme::Boolean::getFalse() {
+Scheme::SchemeObjectPtr Scheme::Boolean::getFalse() {
     return dummy_false;
 }

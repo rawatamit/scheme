@@ -9,8 +9,8 @@ class Pair : public SchemeObject {
 private:
     int start_line_, start_col_;
     int end_line_, end_col_;
-    SchemeObject const* car_;
-    SchemeObject const* cdr_;
+    SchemeObjectPtr car_;
+    SchemeObjectPtr cdr_;
     
     Pair(Scheme::SchemeObject::ObjectTy type,
          int start_line, int start_col,
@@ -18,19 +18,19 @@ private:
 public:
     Pair(int start_line, int start_col,
          int end_line, int end_col,
-         SchemeObject const* car, SchemeObject const* cdr);
+         SchemeObjectPtr car, SchemeObjectPtr cdr);
     virtual ~Pair();
-    static Pair const* getEmptyList(int start_line, int start_col,
-                                    int end_line, int end_col);
-    SchemeObject const* getCar() const;
-    SchemeObject const* getCdr() const;
-    SchemeObject const* getCaar() const;
-    SchemeObject const* getCdar() const;
-    SchemeObject const* getCadr() const;
-    SchemeObject const* getCddr() const;
-    SchemeObject const* getCaddr() const;
-    SchemeObject const* getCdddr() const;
-    SchemeObject const* getCadddr() const;
+    static SchemeObjectPtr getEmptyList(int start_line, int start_col,
+                                              int end_line, int end_col);
+    SchemeObjectPtr getCar() const;
+    SchemeObjectPtr getCdr() const;
+    SchemeObjectPtr getCaar() const;
+    SchemeObjectPtr getCdar() const;
+    SchemeObjectPtr getCadr() const;
+    SchemeObjectPtr getCddr() const;
+    SchemeObjectPtr getCaddr() const;
+    SchemeObjectPtr getCdddr() const;
+    SchemeObjectPtr getCadddr() const;
 };
 } // namespace Scheme
 

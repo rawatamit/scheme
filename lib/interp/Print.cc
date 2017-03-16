@@ -7,21 +7,22 @@
 #include "AST/Symbol.h"
 
 namespace {
-void printFixnum(Scheme::Fixnum const* obj, std::ostream& out) {
-    out << obj->getValue()->getText();
+void printFixnum(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+    out << std::dynamic_pointer_cast<Scheme::Fixnum>(obj)->getValue()->getText();
 }
 
-void printBoolean(Scheme::Boolean const* obj, std::ostream& out) {
-    out << obj->getValue()->getText();
+void printBoolean(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+    out << std::dynamic_pointer_cast<Scheme::Boolean>(obj)->getValue()->getText();
 }
 
-void printCharacter(Scheme::Character const* obj, std::ostream& out) {
-    out << obj->getValue()->getText();
+void printCharacter(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+    out << std::dynamic_pointer_cast<Scheme::Character>(obj)->getValue()->getText();
 }
 
-void printString(Scheme::String const* obj, std::ostream& out) {
+void printString(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+    auto str = std::dynamic_pointer_cast<Scheme::String>(obj);
     out << '"';
-    for (char ch : obj->getValue()->getText()) {
+    for (char ch : str->getValue()->getText()) {
         switch (ch) {
         case '\\':
             out << "\\\\";
@@ -40,36 +41,37 @@ void printString(Scheme::String const* obj, std::ostream& out) {
     out << '"';
 }
 
-void printPair(Scheme::Pair const* obj, std::ostream& out) {
-    print(obj->getCar(), out); // print car
-    Scheme::SchemeObject const* cdr = obj->getCdr();
+void printPair(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+    auto pair = std::dynamic_pointer_cast<Scheme::Pair>(obj);
+    print(pair->getCar(), out); // print car
+    Scheme::SchemeObjectPtr cdr = pair->getCdr();
     if (cdr->isPair()) {
         out << ' ';
-        printPair(dynamic_cast<Scheme::Pair const*>(cdr), out);
+        printPair(std::dynamic_pointer_cast<Scheme::Pair>(cdr), out);
     } else if (not cdr->isEmptyList()) {
         out << " . ";
         print(cdr, out);
     }
 }
 
-void printSymbol(Scheme::Symbol const* obj, std::ostream& out) {
-    out << obj->getValue()->getText();
+void printSymbol(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+    out << std::dynamic_pointer_cast<Scheme::Symbol>(obj)->getValue()->getText();
 }
 } // anonymous namespace
 
-void Scheme::print(Scheme::SchemeObject const* obj, std::ostream& out) {
+void Scheme::print(Scheme::SchemeObjectPtr obj, std::ostream& out) {
     switch (obj->getType()) {
     case Scheme::SchemeObject::FIXNUM_TY:
-        printFixnum(dynamic_cast<Scheme::Fixnum const*>(obj), out);
+        printFixnum(obj, out);
         break;
     case Scheme::SchemeObject::BOOLEAN_TY:
-        printBoolean(dynamic_cast<Scheme::Boolean const*>(obj), out);
+        printBoolean(obj, out);
         break;
     case Scheme::SchemeObject::CHARACTER_TY:
-        printCharacter(dynamic_cast<Scheme::Character const*>(obj), out);
+        printCharacter(obj, out);
         break;
     case Scheme::SchemeObject::STRING_TY:
-        printString(dynamic_cast<Scheme::String const*>(obj), out);
+        printString(obj, out);
         break;
     case Scheme::SchemeObject::EMPTYLIST_TY:
         out << "()";
@@ -77,14 +79,14 @@ void Scheme::print(Scheme::SchemeObject const* obj, std::ostream& out) {
         break;
     case Scheme::SchemeObject::PAIR_TY:
         out << '(';
-        printPair(dynamic_cast<Scheme::Pair const*>(obj), out);
+        printPair(obj, out);
         out << ')';
         break;
     case Scheme::SchemeObject::SYMBOL_TY:
-        printSymbol(dynamic_cast<Scheme::Symbol const*>(obj), out);
+        printSymbol(obj, out);
         break;
     case Scheme::SchemeObject::PROC_TY:
-        out << "<primitive>";
+        out << "#<primitive>";
         break;
     default:
         break;

@@ -21,17 +21,17 @@ private:
     void skipWhitespace();
     bool isInitial(int ch) const;
     bool isDelimiter(int ch) const;
-    Scheme::SchemeObject const* readFixnumOrMinus();
-    Scheme::SchemeObject const* readBooleanOrCharacter();
-    Scheme::SchemeObject const* readString();
-    Scheme::SchemeObject const* readPair(int start_line, int start_col);
-    Scheme::SchemeObject const* processPair(Scheme::SchemeObject const* obj);
-    Scheme::SchemeObject const* readSymbol();
+    Scheme::SchemeObjectPtr readFixnumOrMinus();
+    Scheme::SchemeObjectPtr readBooleanOrCharacter();
+    Scheme::SchemeObjectPtr readString();
+    Scheme::SchemeObjectPtr readPair(int start_line, int start_col);
+    Scheme::SchemeObjectPtr processPair(Scheme::SchemeObjectPtr obj);
+    Scheme::SchemeObjectPtr readSymbol();
 public:
     Reader(std::istream& in_, std::string const& description);
     virtual ~Reader();
     bool isEof() const;
-    Scheme::SchemeObject const* read();
+    Scheme::SchemeObjectPtr read();
     std::string const& getDescription() const;
 };
 } // namespace Scheme

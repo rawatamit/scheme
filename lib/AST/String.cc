@@ -1,6 +1,6 @@
 #include "AST/String.h"
 
-Scheme::String::String(Token* value) :
+Scheme::String::String(std::shared_ptr<Token> value) :
     SchemeObject(Scheme::SchemeObject::STRING_TY), value_(value)
 {
 }
@@ -8,6 +8,6 @@ Scheme::String::String(Token* value) :
 Scheme::String::~String() {
 }
 
-Scheme::Token* Scheme::String::getValue() const {
+std::shared_ptr<Scheme::Token> Scheme::String::getValue() const {
     return value_;
 }

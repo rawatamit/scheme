@@ -7,19 +7,19 @@
 namespace Scheme {
 class Boolean : public SchemeObject {
 private:
-    Token* value_;
-    static Boolean const* dummy_true;
-    static Boolean const* dummy_false;
-    Boolean(Token* value);
+    std::shared_ptr<Token> value_;
+    static SchemeObjectPtr dummy_true;
+    static SchemeObjectPtr dummy_false;
+    Boolean(std::shared_ptr<Token> value);
 
 public:
     virtual ~Boolean();
-    static Boolean const* get(Token* value);
+    static SchemeObjectPtr get(std::shared_ptr<Token> value);
     bool isTrue() const;
     bool isFalse() const;
-    Token* getValue() const;
-    static Scheme::Boolean const* getTrue();
-    static Scheme::Boolean const* getFalse();
+    std::shared_ptr<Token> getValue() const;
+    static SchemeObjectPtr getTrue();
+    static SchemeObjectPtr getFalse();
 };
 } // namespace Scheme
 

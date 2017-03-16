@@ -8,12 +8,12 @@
 namespace Scheme {
 class Symbol : public SchemeObject {
 public:    
-    Token* value_;
-    Symbol(Token* value);
+    std::shared_ptr<Token> value_;
+    Symbol(std::shared_ptr<Token> value);
 public:
-    static Symbol* getSymbol(Token* value);
+    static SchemeObjectPtr getSymbol(std::shared_ptr<Token> value);
     virtual ~Symbol();
-    Token* getValue() const;
+    std::shared_ptr<Token> getValue() const;
 };
 } // namespace Scheme
 

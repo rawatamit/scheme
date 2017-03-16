@@ -28,7 +28,7 @@ std::string const& Scheme::Reader::getDescription() const {
     return description_;
 }
 
-Scheme::SchemeObject const* Scheme::Reader::read() {
+Scheme::SchemeObjectPtr Scheme::Reader::read() {
     int start_line, start_col;
     skipWhitespace(); // start with a valid character
 
@@ -46,7 +46,7 @@ Scheme::SchemeObject const* Scheme::Reader::read() {
         return processPair(readPair(start_line, start_col));
     case '\'':
         nextChar(); // skip '
-        return new Scheme::Quote(read());
+        return std::make_shared<Scheme::Quote>(read());
     case EOF:
         eof_ = true;
         return nullptr;
@@ -99,7 +99,7 @@ bool Scheme::Reader::isDelimiter(int c) const {
            c == '"'   || c == ';';
 }
 
-Scheme::SchemeObject const* Scheme::Reader::readFixnumOrMinus() {
+Scheme::SchemeObjectPtr Scheme::Reader::readFixnumOrMinus() {
     int line = line_, scol = column_;
     std::string text;
 
@@ -111,19 +111,19 @@ Scheme::SchemeObject const* Scheme::Reader::readFixnumOrMinus() {
 
     // is this the sub procedure?
     if (not isdigit(ch_)) {
-        return Scheme::Symbol::getSymbol(new Token(line, scol, text.size(), text, Scheme::TokenType::T_SYMBOL));
+        return Scheme::Symbol::getSymbol(std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_SYMBOL));
     } else {
         do {
             text.push_back(ch_);
             nextChar();
         } while (isdigit(ch_));
 
-        return new Scheme::Fixnum(
-                new Token(line, scol, text.size(), text, Scheme::TokenType::T_FIXNUM));
+        return std::make_shared<Scheme::Fixnum>(
+                std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_FIXNUM));
     }
 }
 
-Scheme::SchemeObject const* Scheme::Reader::readBooleanOrCharacter() {
+Scheme::SchemeObjectPtr Scheme::Reader::readBooleanOrCharacter() {
     int line = line_, scol = column_;
     std::string text;
     text.push_back('#');
@@ -134,14 +134,14 @@ Scheme::SchemeObject const* Scheme::Reader::readBooleanOrCharacter() {
         text.push_back(ch_);
         nextChar(); // skip 't' or 'f'
         return Scheme::Boolean::get(
-            new Token(line, scol, text.size(), text, Scheme::TokenType::T_BOOLEAN));
+            std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_BOOLEAN));
     } else if (ch_ == '\\') { // character
         text.push_back('\\');
         nextChar(); // eat '\'
 
         switch (ch_) {
         case EOF:
-            throw new Scheme::ReaderException("eof in character literal");
+            throw Scheme::ReaderException("eof in character literal");
 
         // 'space' or 's'
         case 's':
@@ -154,18 +154,18 @@ Scheme::SchemeObject const* Scheme::Reader::readBooleanOrCharacter() {
                         text.push_back(ch_);
                         nextChar();
                     } else {
-                        throw new Scheme::ReaderException("incomplete character literal");
+                        throw Scheme::ReaderException("incomplete character literal");
                     }
                 }
             }
-            return new Scheme::Character(
-                new Token(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
+            return std::make_shared<Scheme::Character>(
+                std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
 
         // '\n'
         case '\n':
             text.append("newline");
-            return new Scheme::Character(
-                    new Token(line, scol, 1, text, Scheme::TokenType::T_CHAR));
+            return std::make_shared<Scheme::Character>(
+                    std::make_shared<Token>(line, scol, 1, text, Scheme::TokenType::T_CHAR));
 
         // 'newline' or 'n'
         case 'n':
@@ -178,25 +178,25 @@ Scheme::SchemeObject const* Scheme::Reader::readBooleanOrCharacter() {
                         text.push_back(ch_);
                         nextChar();
                     } else {
-                        throw new Scheme::ReaderException("incomplete character literal");
+                        throw Scheme::ReaderException("incomplete character literal");
                     }
                 }
             }
-            return new Scheme::Character(
-                new Token(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
+            return std::make_shared<Scheme::Character>(
+                std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
 
         default:
             text.push_back(ch_);
             nextChar(); // eat this character
-            return new Scheme::Character(
-                new Token(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
+            return std::make_shared<Scheme::Character>(
+                std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
         }
     }
 
-    throw new Scheme::ReaderException("unknown boolean or character literal");
+    throw Scheme::ReaderException("unknown boolean or character literal");
 }
 
-Scheme::SchemeObject const* Scheme::Reader::readString() {
+Scheme::SchemeObjectPtr Scheme::Reader::readString() {
     int line = line_, scol = column_;
     std::string text;
     nextChar(); // eat '"'
@@ -204,7 +204,7 @@ Scheme::SchemeObject const* Scheme::Reader::readString() {
     while (ch_ != '"') {
         switch (ch_) {
         case EOF:
-            throw new Scheme::ReaderException("eof in string literal");
+            throw Scheme::ReaderException("eof in string literal");
         case '\\':
             nextChar(); // eat '\'
             if (ch_ == 'n') {
@@ -222,15 +222,15 @@ Scheme::SchemeObject const* Scheme::Reader::readString() {
     }
 
     nextChar(); // eat '"'
-    return new Scheme::String(
-        new Token(line, scol, text.size(), text, Scheme::TokenType::T_STRING));
+    return std::make_shared<Scheme::String>(
+        std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_STRING));
 }
 
-Scheme::SchemeObject const* Scheme::Reader::processPair(Scheme::SchemeObject const* obj) {
-    Scheme::Pair const* pair = dynamic_cast<Scheme::Pair const*>(obj);
+Scheme::SchemeObjectPtr Scheme::Reader::processPair(Scheme::SchemeObjectPtr obj) {
+    auto pair = std::dynamic_pointer_cast<Scheme::Pair>(obj);
 
     if (not pair->isEmptyList() and pair->getCar()->isSymbol()) {
-        Scheme::Symbol const* sym = dynamic_cast<Scheme::Symbol const*>(pair->getCar());
+        auto sym = std::dynamic_pointer_cast<Scheme::Symbol>(pair->getCar());
         std::string const& name = sym->getValue()->getText();
 
         if (name == "quote") {
@@ -239,46 +239,46 @@ Scheme::SchemeObject const* Scheme::Reader::processPair(Scheme::SchemeObject con
             } else if (pair->getCdr()->isEmptyList()) {
                     return pair->getCdr();
             } else {
-                Scheme::Pair const* pcdr = dynamic_cast<Scheme::Pair const*>(pair->getCdr());
-                return new Scheme::Quote(pcdr->getCar());
+                auto pcdr = std::dynamic_pointer_cast<Scheme::Pair>(pair->getCdr());
+                return std::make_shared<Scheme::Quote>(pcdr->getCar());
             }
         } else if (name == "define") {
-            if (auto list = dynamic_cast<Scheme::Pair const*>(pair->getCdr())) {
-                Scheme::SchemeObject const* var = list->getCar();
-                Scheme::SchemeObject const* val = list->getCadr();
+            if (auto list = std::dynamic_pointer_cast<Scheme::Pair>(pair->getCdr())) {
+                Scheme::SchemeObjectPtr var = list->getCar();
+                Scheme::SchemeObjectPtr val = list->getCadr();
 
                 if (var == nullptr or val == nullptr) {
                     throw Scheme::ReaderException("define form not proper");
                 } else {
-                    return new Scheme::Definition(var, val);
+                    return std::make_shared<Scheme::Definition>(var, val);
                 }
             } else {
                 throw Scheme::ReaderException("define form not proper");
             }
         } else if (name == "set!") {
-            if (auto list = dynamic_cast<Scheme::Pair const*>(pair->getCdr())) {
-                Scheme::SchemeObject const* var = list->getCar();
-                Scheme::SchemeObject const* val = list->getCadr();
+            if (auto list = std::dynamic_pointer_cast<Scheme::Pair>(pair->getCdr())) {
+                Scheme::SchemeObjectPtr var = list->getCar();
+                Scheme::SchemeObjectPtr val = list->getCadr();
 
                 if (var == nullptr or val == nullptr) {
                     throw Scheme::ReaderException("set! form not proper");
                 } else {
-                    return new Scheme::Redefinition(var, val);
+                    return std::make_shared<Scheme::Redefinition>(var, val);
                 }
             } else {
                 throw Scheme::ReaderException("set! form not proper");
             }
         } else if (name == "if") {
-            if (auto list = dynamic_cast<Scheme::Pair const*>(pair->getCdr())) {
-                Scheme::SchemeObject const* predicate = list->getCar();
-                Scheme::SchemeObject const* consequent = list->getCadr();
+            if (auto list = std::dynamic_pointer_cast<Scheme::Pair>(pair->getCdr())) {
+                Scheme::SchemeObjectPtr predicate = list->getCar();
+                Scheme::SchemeObjectPtr consequent = list->getCadr();
 
                 if (predicate == nullptr or consequent == nullptr) {
                     throw Scheme::ReaderException("if form not proper");
                 } else if (auto alternative = list->getCaddr()) {
-                    return new Scheme::If(predicate, consequent, alternative);
+                    return std::make_shared<Scheme::If>(predicate, consequent, alternative);
                 } else {
-                    return new Scheme::If(predicate, consequent, nullptr);
+                    return std::make_shared<Scheme::If>(predicate, consequent, nullptr);
                 }
             } else {
                 throw Scheme::ReaderException("if form not proper");
@@ -290,27 +290,25 @@ Scheme::SchemeObject const* Scheme::Reader::processPair(Scheme::SchemeObject con
 }
 
 // FIXME: line number information might not be correct
-Scheme::SchemeObject const* Scheme::Reader::readPair(int start_line, int start_col) {
+Scheme::SchemeObjectPtr Scheme::Reader::readPair(int start_line, int start_col) {
     skipWhitespace();
 
     if (ch_ == ')') {
-        Scheme::Pair const* empty_list =
-            Scheme::Pair::getEmptyList(start_line, start_col, line_, column_);
+        auto empty_list = Scheme::Pair::getEmptyList(start_line, start_col, line_, column_);
         nextChar(); // skip ')'
         return empty_list;
     }
 
-    Scheme::SchemeObject const* car = read();
+    Scheme::SchemeObjectPtr car = read();
     skipWhitespace();
     
     if (ch_ == '.') { // read improper list
         nextChar(); // eat '.'
         if (isDelimiter(ch_)) {
-            Scheme::SchemeObject const* cdr = read();
+            Scheme::SchemeObjectPtr cdr = read();
             skipWhitespace();
             if (ch_ == ')') {
-                Scheme::Pair const* pair =
-                    new Scheme::Pair(start_line, start_col, line_, column_, car, cdr);
+                auto pair = std::make_shared<Scheme::Pair>(start_line, start_col, line_, column_, car, cdr);
                 nextChar(); // skip ')'
                 return pair;
             } else {
@@ -320,12 +318,12 @@ Scheme::SchemeObject const* Scheme::Reader::readPair(int start_line, int start_c
             throw Scheme::ReaderException("dot not followed by delimiter");
         }
     } else { // read proper list
-        Scheme::SchemeObject const* cdr = readPair(start_line, start_col);
-        return new Scheme::Pair(start_line, start_col, line_, column_, car, cdr);
+        Scheme::SchemeObjectPtr cdr = readPair(start_line, start_col);
+        return std::make_shared<Scheme::Pair>(start_line, start_col, line_, column_, car, cdr);
     }
 }
 
-Scheme::SchemeObject const* Scheme::Reader::readSymbol() {
+Scheme::SchemeObjectPtr Scheme::Reader::readSymbol() {
     int line = line_, scol = column_;
     std::string text;
     
@@ -336,7 +334,7 @@ Scheme::SchemeObject const* Scheme::Reader::readSymbol() {
     
     if (isDelimiter(ch_)) {
         return Scheme::Symbol::getSymbol(
-            new Token(line, scol, text.size(), text, Scheme::TokenType::T_SYMBOL));
+            std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_SYMBOL));
     } else {
         throw Scheme::ReaderException("symbol not followed by delimiter");
     }

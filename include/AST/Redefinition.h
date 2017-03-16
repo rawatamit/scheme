@@ -6,14 +6,14 @@
 namespace Scheme {
 class Redefinition : public SchemeObject {
 private:
-    SchemeObject const* var_;
-    SchemeObject const* val_;
+    SchemeObjectPtr var_;
+    SchemeObjectPtr val_;
 
 public:
-    Redefinition(SchemeObject const* var, SchemeObject const* val);
+    Redefinition(SchemeObjectPtr var, SchemeObjectPtr val);
     virtual ~Redefinition();
-    SchemeObject const* getVariable() const;
-    SchemeObject const* getValue() const;
+    SchemeObjectPtr getVariable() const;
+    SchemeObjectPtr getValue() const;
 };
 } // namespace Scheme
 

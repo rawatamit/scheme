@@ -9,17 +9,17 @@
 #include <iostream>
 
 #define INSTALL_PROC(ENV, NAME, DEFINITION) do { \
-        (ENV)->getCurrentFrame()->define((NAME), new Scheme::Procedure(DEFINITION)); \
+        (ENV)->getCurrentFrame()->define((NAME), std::make_shared<Scheme::Procedure>(DEFINITION)); \
     } while(0)
 
-void repl(Scheme::Reader& reader, Scheme::Environment* env) {
+void repl(Scheme::Reader& reader, std::shared_ptr<Scheme::Environment> env) {
     std::cout << "> ";
-    Scheme::SchemeObject const* obj = reader.read();
+    auto obj = reader.read();
     
     // FIXME: fix the try catch block
     if (obj) {
         try {
-            Scheme::SchemeObject const* val = eval(obj, env);
+            auto val = eval(obj, env);
             if (val) {
                 print(val, std::cout);
                 std::cout << '\n';
@@ -32,7 +32,7 @@ void repl(Scheme::Reader& reader, Scheme::Environment* env) {
     }
 }
 
-void install_primitives(Scheme::Environment* env) {
+void install_primitives(std::shared_ptr<Scheme::Environment> env) {
     INSTALL_PROC(env, "null?", Scheme::is_null_builtin);
     INSTALL_PROC(env, "boolean?", Scheme::is_boolean_builtin);
     INSTALL_PROC(env, "symbol?", Scheme::is_symbol_builtin);
@@ -61,7 +61,7 @@ void install_primitives(Scheme::Environment* env) {
 
 int main(int argc, char **argv) {
     Scheme::Reader reader(std::cin, "<stdin>");
-    Scheme::Environment* env = new Scheme::Environment();
+    auto env = std::make_shared<Scheme::Environment>();
 
     // install primitive procedures
     install_primitives(env);

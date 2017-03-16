@@ -10,7 +10,7 @@ Scheme::Pair::Pair(Scheme::SchemeObject::ObjectTy type,
 }
 
 Scheme::Pair::Pair(int start_line, int start_col, int end_line, int end_col,
-                   SchemeObject const* car, SchemeObject const* cdr) :
+                   SchemeObjectPtr car, SchemeObjectPtr cdr) :
     SchemeObject(Scheme::SchemeObject::PAIR_TY),
     start_line_(start_line), start_col_(start_col),
     end_line_(end_line), end_col_(end_col),
@@ -21,73 +21,74 @@ Scheme::Pair::Pair(int start_line, int start_col, int end_line, int end_col,
 Scheme::Pair::~Pair() {
 }
 
-Scheme::Pair const* Scheme::Pair::getEmptyList(int start_line, int start_col,
+Scheme::SchemeObjectPtr Scheme::Pair::getEmptyList(int start_line, int start_col,
                                                int end_line, int end_col)
 {
-    return new Pair(
-            Scheme::SchemeObject::EMPTYLIST_TY,
-            start_line, start_col,
-            end_line, end_col);
+    return std::shared_ptr<Pair>(
+            new Pair(
+                Scheme::SchemeObject::EMPTYLIST_TY,
+                start_line, start_col,
+                end_line, end_col));
 }
 
-Scheme::SchemeObject const* Scheme::Pair::getCar() const {
+Scheme::SchemeObjectPtr Scheme::Pair::getCar() const {
     return car_;
 }
 
-Scheme::SchemeObject const* Scheme::Pair::getCdr() const {
+Scheme::SchemeObjectPtr Scheme::Pair::getCdr() const {
     return cdr_;
 }
 
-Scheme::SchemeObject const* Scheme::Pair::getCaar() const {
-    if (auto car = dynamic_cast<Scheme::Pair const*>(getCar())) {
+Scheme::SchemeObjectPtr Scheme::Pair::getCaar() const {
+    if (auto car = std::dynamic_pointer_cast<Scheme::Pair>(getCar())) {
         return car->getCar();
     }
 
     return nullptr;
 }
 
-Scheme::SchemeObject const* Scheme::Pair::getCdar() const {
-    if (auto car = dynamic_cast<Scheme::Pair const*>(getCar())) {
+Scheme::SchemeObjectPtr Scheme::Pair::getCdar() const {
+    if (auto car = std::dynamic_pointer_cast<Scheme::Pair>(getCar())) {
         return car->getCdr();
     }
 
     return nullptr;
 }
 
-Scheme::SchemeObject const* Scheme::Pair::getCadr() const {
-    if (auto cdr = dynamic_cast<Scheme::Pair const*>(getCdr())) {
+Scheme::SchemeObjectPtr Scheme::Pair::getCadr() const {
+    if (auto cdr = std::dynamic_pointer_cast<Scheme::Pair>(getCdr())) {
         return cdr->getCar();
     }
 
     return nullptr;
 }
 
-Scheme::SchemeObject const* Scheme::Pair::getCddr() const {
-    if (auto cdr = dynamic_cast<Scheme::Pair const*>(getCdr())) {
+Scheme::SchemeObjectPtr Scheme::Pair::getCddr() const {
+    if (auto cdr = std::dynamic_pointer_cast<Scheme::Pair>(getCdr())) {
         return cdr->getCdr();
     }
 
     return nullptr;
 }
 
-Scheme::SchemeObject const* Scheme::Pair::getCaddr() const {
-    if (auto cddr = dynamic_cast<Scheme::Pair const*>(getCddr())) {
+Scheme::SchemeObjectPtr Scheme::Pair::getCaddr() const {
+    if (auto cddr = std::dynamic_pointer_cast<Scheme::Pair>(getCddr())) {
         return cddr->getCar();
     }
 
     return nullptr;
 }
 
-Scheme::SchemeObject const* Scheme::Pair::getCdddr() const {
-    if (auto cddr = dynamic_cast<Scheme::Pair const*>(getCddr())) {
+Scheme::SchemeObjectPtr Scheme::Pair::getCdddr() const {
+    if (auto cddr = std::dynamic_pointer_cast<Scheme::Pair>(getCddr())) {
         return cddr->getCdr();
     }
 
     return nullptr;
 }
 
-Scheme::SchemeObject const* Scheme::Pair::getCadddr() const {
-    if (auto cdddr = dynamic_cast<Scheme::Pair const*>(getCdddr())) {
+Scheme::SchemeObjectPtr Scheme::Pair::getCadddr() const {
+    if (auto cdddr = std::dynamic_pointer_cast<Scheme::Pair>(getCdddr())) {
         return cdddr->getCar();
     }
 

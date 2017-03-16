@@ -1,33 +1,31 @@
 #include "interp/Environment.h"
 
 Scheme::Environment::Environment() {
-    globalframe_ = new Frame(nullptr);
+    globalframe_ = std::make_shared<Frame>(nullptr);
     currentframe_ = globalframe_;
 }
 
 Scheme::Environment::~Environment() {
-    currentframe_ = nullptr;
-    delete globalframe_;
 }
 
-Scheme::Frame* Scheme::Environment::getCurrentFrame() {
+std::shared_ptr<Scheme::Frame> Scheme::Environment::getCurrentFrame() {
     return currentframe_;
 }
 
-const Scheme::Frame* Scheme::Environment::getCurrentFrame() const {
+std::shared_ptr<Scheme::Frame> Scheme::Environment::getCurrentFrame() const {
     return currentframe_;
 }
 
-Scheme::Frame* Scheme::Environment::getGlobalFrame() {
+std::shared_ptr<Scheme::Frame> Scheme::Environment::getGlobalFrame() {
     return globalframe_;
 }
 
-const Scheme::Frame* Scheme::Environment::getGlobalFrame() const {
+std::shared_ptr<Scheme::Frame> Scheme::Environment::getGlobalFrame() const {
     return globalframe_;
 }
 
 void Scheme::Environment::beginFrame() {
-    currentframe_ = new Frame(currentframe_);
+    currentframe_ = std::make_shared<Frame>(currentframe_);
 }
 
 void Scheme::Environment::endFrame() {

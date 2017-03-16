@@ -8,7 +8,7 @@
 namespace Scheme {
     class Procedure : public SchemeObject {
     public:
-        typedef SchemeObject const* (*FunctionType)(SchemeObject const* arguments);
+        typedef SchemeObjectPtr (*FunctionType)(SchemeObjectPtr arguments);
 
     private:
         FunctionType f_;
@@ -20,7 +20,7 @@ namespace Scheme {
         FunctionType getFunction() const;
     };
 
-#define DECLARE_PROC(NAME) SchemeObject const* NAME(SchemeObject const* arguments);
+#define DECLARE_PROC(NAME) SchemeObjectPtr NAME(SchemeObjectPtr arguments);
 
     DECLARE_PROC(is_null_builtin);
     DECLARE_PROC(is_boolean_builtin);

@@ -1,21 +1,20 @@
 #include "interp/Frame.h"
 #include "interp/EnvironmentException.h"
 
-Scheme::Frame::Frame(Scheme::Frame* enclosingframe) :
+Scheme::Frame::Frame(std::shared_ptr<Scheme::Frame> enclosingframe) :
     enclosingframe_(enclosingframe)
 {
 }
 
 Scheme::Frame::~Frame() {
-    enclosingframe_ = nullptr;
     symtab_.clear();
 }
 
-Scheme::Frame* Scheme::Frame::getEnclosingFrame() {
+std::shared_ptr<Scheme::Frame> Scheme::Frame::getEnclosingFrame() {
     return enclosingframe_;
 }
 
-Scheme::Frame const* Scheme::Frame::getEnclosingFrame() const {
+std::shared_ptr<Scheme::Frame> Scheme::Frame::getEnclosingFrame() const {
     return enclosingframe_;
 }
 
@@ -33,7 +32,7 @@ Scheme::Frame::SymMapIterator Scheme::Frame::lookupIter(const std::string& var) 
         if (it != frame->symtab_.end()) {
             return it;
         } else {
-            frame = frame->getEnclosingFrame();
+            frame = frame->getEnclosingFrame().get();
         }
     }
 
@@ -49,28 +48,28 @@ Scheme::Frame::SymMapConstIterator Scheme::Frame::lookupConstIter(const std::str
         if (it != frame->symtab_.end()) {
             return it;
         } else {
-            frame = frame->getEnclosingFrame();
+            frame = frame->getEnclosingFrame().get();
         }
     }
 
     return symtab_.end();
 }
 
-Scheme::SchemeObject const* Scheme::Frame::lookup(const std::string& var) const {
+Scheme::SchemeObjectPtr Scheme::Frame::lookup(const std::string& var) const {
     SymMapConstIterator it = lookupConstIter(var);
     return it == symtab_.end() ? nullptr : it->second;
 }
 
-void Scheme::Frame::define(const std::string& var, Scheme::SchemeObject const* val) {
+void Scheme::Frame::define(const std::string& var, Scheme::SchemeObjectPtr val) {
     symtab_[var] = val;
 }
 
-void Scheme::Frame::redefine(const std::string& var, Scheme::SchemeObject const* val) {
+void Scheme::Frame::redefine(const std::string& var, Scheme::SchemeObjectPtr val) {
     SymMapIterator it = lookupIter(var);
 
     if (it != symtab_.end()) {
         it->second = val;
     } else {
-        throw new EnvironmentException("unbound variable");
+        throw EnvironmentException("unbound variable");
     }
 }

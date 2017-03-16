@@ -18,9 +18,9 @@ Scheme::Procedure::FunctionType Scheme::Procedure::getFunction() const
 }
 
 // builtins
-#define TYPE_PREDICATE(NAME, PREDICATE) Scheme::SchemeObject const* Scheme::NAME(Scheme::SchemeObject const* arguments) { \
-    return dynamic_cast<Scheme::Pair const*>(arguments)->getCar()->PREDICATE() ? Scheme::Boolean::getTrue() \
-                                                                               : Scheme::Boolean::getFalse(); \
+#define TYPE_PREDICATE(NAME, PREDICATE) Scheme::SchemeObjectPtr Scheme::NAME(Scheme::SchemeObjectPtr arguments) { \
+    return std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar()->PREDICATE() ? Scheme::Boolean::getTrue() \
+                                                                                      : Scheme::Boolean::getFalse(); \
 }
 
 TYPE_PREDICATE(is_null_builtin, isEmptyList);
@@ -34,7 +34,7 @@ TYPE_PREDICATE(is_procedure_builtin, isProcedure);
 
 #define TYPE_CONVERSION(NAME, FROM_CLASS, TO_CLASS, FUNCTION) \
 Scheme::SchemeObject const* Scheme::NAME(Scheme::SchemeObject const* arguments) { \
-    auto val = dynamic_cast<FROM_CLASS const*>(dynamic_cast<Scheme::Pair const*>(arguments)->getCar())->getValue(); \
+    auto val = dynamic_cast<FROM_CLASS>(dynamic_cast<Scheme::Pair>(arguments)->getCar())->getValue(); \
     return new TO_CLASS(FUNCTION(val)); \
 }
 
@@ -47,13 +47,13 @@ TYPE_CONVERSION(char_to_fixnum_builtin, Scheme::Character, Scheme::Fixnum,
                     return new Token(-1, -1, -1, buf, TokenType::T_FIXNUM); });
 #endif
 
-Scheme::SchemeObject const* Scheme::add_builtin(Scheme::SchemeObject const *arguments) {
+Scheme::SchemeObjectPtr Scheme::add_builtin(Scheme::SchemeObjectPtr arguments) {
     long ret = 0;
 
     while (not arguments->isEmptyList()) {
-        auto list = dynamic_cast<Scheme::Pair const*>(arguments);
+        auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
 
-        if (auto fixnum = dynamic_cast<Scheme::Fixnum const*>(list->getCar())) {
+        if (auto fixnum = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCar())) {
             ret += atoi(fixnum->getValue()->getText().c_str());
         }
 
@@ -62,18 +62,18 @@ Scheme::SchemeObject const* Scheme::add_builtin(Scheme::SchemeObject const *argu
 
     char buf[128];
     snprintf(buf, sizeof buf, "%ld", ret);
-    return new Scheme::Fixnum(new Token(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
+    return std::make_shared<Scheme::Fixnum>(std::make_shared<Token>(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
 }
 
-Scheme::SchemeObject const* Scheme::sub_builtin(Scheme::SchemeObject const *arguments) {
-    long ret = atoi(dynamic_cast<Scheme::Fixnum const*>(
-                        dynamic_cast<Scheme::Pair const*>(arguments)->getCar())->getValue()->getText().c_str());
-    arguments = dynamic_cast<Scheme::Pair const*>(arguments)->getCdr();
+Scheme::SchemeObjectPtr Scheme::sub_builtin(Scheme::SchemeObjectPtr arguments) {
+    long ret = atoi(std::dynamic_pointer_cast<Scheme::Fixnum>(
+                        std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getValue()->getText().c_str());
+    arguments = std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCdr();
 
     while (not arguments->isEmptyList()) {
-        auto list = dynamic_cast<Scheme::Pair const*>(arguments);
+        auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
 
-        if (auto fixnum = dynamic_cast<Scheme::Fixnum const*>(list->getCar())) {
+        if (auto fixnum = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCar())) {
             ret -= atoi(fixnum->getValue()->getText().c_str());
         }
 
@@ -82,16 +82,16 @@ Scheme::SchemeObject const* Scheme::sub_builtin(Scheme::SchemeObject const *argu
 
     char buf[128];
     snprintf(buf, sizeof buf, "%ld", ret);
-    return new Scheme::Fixnum(new Token(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
+    return std::make_shared<Scheme::Fixnum>(std::make_shared<Token>(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
 }
 
-Scheme::SchemeObject const* Scheme::mul_builtin(Scheme::SchemeObject const *arguments) {
+Scheme::SchemeObjectPtr Scheme::mul_builtin(Scheme::SchemeObjectPtr arguments) {
     long ret = 1;
 
     while (not arguments->isEmptyList()) {
-        auto list = dynamic_cast<Scheme::Pair const*>(arguments);
+        auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
 
-        if (auto fixnum = dynamic_cast<Scheme::Fixnum const*>(list->getCar())) {
+        if (auto fixnum = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCar())) {
             ret *= atoi(fixnum->getValue()->getText().c_str());
         }
 
@@ -100,40 +100,40 @@ Scheme::SchemeObject const* Scheme::mul_builtin(Scheme::SchemeObject const *argu
 
     char buf[128];
     snprintf(buf, sizeof buf, "%ld", ret);
-    return new Scheme::Fixnum(new Token(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
+    return std::make_shared<Scheme::Fixnum>(std::make_shared<Token>(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
 }
 
-Scheme::SchemeObject const* Scheme::quotient_builtin(const SchemeObject *arguments) {
-    auto list = dynamic_cast<Scheme::Pair const*>(arguments);
-    auto a = dynamic_cast<Scheme::Fixnum const*>(list->getCar());
-    auto b = dynamic_cast<Scheme::Fixnum const*>(list->getCadr());
+Scheme::SchemeObjectPtr Scheme::quotient_builtin(Scheme::SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    auto a = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCar());
+    auto b = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCadr());
 
     char buf[128];
     long ret = atoi(a->getValue()->getText().c_str()) / atoi(b->getValue()->getText().c_str());
     snprintf(buf, sizeof buf, "%ld", ret);
-    return new Scheme::Fixnum(new Token(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
+    return std::make_shared<Scheme::Fixnum>(std::make_shared<Token>(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
 }
 
-Scheme::SchemeObject const* Scheme::remainder_builtin(const SchemeObject *arguments) {
-    auto list = dynamic_cast<Scheme::Pair const*>(arguments);
-    auto a = dynamic_cast<Scheme::Fixnum const*>(list->getCar());
-    auto b = dynamic_cast<Scheme::Fixnum const*>(list->getCadr());
+Scheme::SchemeObjectPtr Scheme::remainder_builtin(Scheme::SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    auto a = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCar());
+    auto b = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCadr());
 
     char buf[128];
     long ret = atoi(a->getValue()->getText().c_str()) % atoi(b->getValue()->getText().c_str());
     snprintf(buf, sizeof buf, "%ld", ret);
-    return new Scheme::Fixnum(new Token(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
+    return std::make_shared<Scheme::Fixnum>(std::make_shared<Token>(-1, -1, strlen(buf), buf, Scheme::TokenType::T_FIXNUM));
 }
 
-Scheme::SchemeObject const* Scheme::equal_fixnum_builtin(const SchemeObject *arguments) {
-    long val = atoi(dynamic_cast<Scheme::Fixnum const*>(
-                            dynamic_cast<Scheme::Pair const*>(arguments)->getCar())->getValue()->getText().c_str());
-    arguments = dynamic_cast<Scheme::Pair const*>(arguments)->getCdr();
+Scheme::SchemeObjectPtr Scheme::equal_fixnum_builtin(Scheme::SchemeObjectPtr arguments) {
+    long val = atoi(std::dynamic_pointer_cast<Scheme::Fixnum>(
+                        std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getValue()->getText().c_str());
+    arguments = std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCdr();
 
     while (not arguments->isEmptyList()) {
-        auto list = dynamic_cast<Scheme::Pair const*>(arguments);
+        auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
 
-        if (auto fixnum = dynamic_cast<Scheme::Fixnum const*>(list->getCar())) {
+        if (auto fixnum = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCar())) {
             if (val != atoi(fixnum->getValue()->getText().c_str())) {
                 return Scheme::Boolean::getFalse();
             }
@@ -145,15 +145,15 @@ Scheme::SchemeObject const* Scheme::equal_fixnum_builtin(const SchemeObject *arg
     return Scheme::Boolean::getTrue();
 }
 
-Scheme::SchemeObject const* Scheme::lt_fixnum_builtin(const SchemeObject *arguments) {
-    long val = atoi(dynamic_cast<Scheme::Fixnum const*>(
-                            dynamic_cast<Scheme::Pair const*>(arguments)->getCar())->getValue()->getText().c_str());
-    arguments = dynamic_cast<Scheme::Pair const*>(arguments)->getCdr();
+Scheme::SchemeObjectPtr Scheme::lt_fixnum_builtin(Scheme::SchemeObjectPtr arguments) {
+    long val = atoi(std::dynamic_pointer_cast<Scheme::Fixnum>(
+                        std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getValue()->getText().c_str());
+    arguments = std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCdr();
 
     while (not arguments->isEmptyList()) {
-        auto list = dynamic_cast<Scheme::Pair const*>(arguments);
+        auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
 
-        if (auto fixnum = dynamic_cast<Scheme::Fixnum const*>(list->getCar())) {
+        if (auto fixnum = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCar())) {
             long cur = atoi(fixnum->getValue()->getText().c_str());
 
             if (val < cur) {
@@ -169,15 +169,15 @@ Scheme::SchemeObject const* Scheme::lt_fixnum_builtin(const SchemeObject *argume
     return Scheme::Boolean::getTrue();
 }
 
-Scheme::SchemeObject const* Scheme::gt_fixnum_builtin(const SchemeObject *arguments) {
-    long val = atoi(dynamic_cast<Scheme::Fixnum const*>(
-                            dynamic_cast<Scheme::Pair const*>(arguments)->getCar())->getValue()->getText().c_str());
-    arguments = dynamic_cast<Scheme::Pair const*>(arguments)->getCdr();
+Scheme::SchemeObjectPtr Scheme::gt_fixnum_builtin(Scheme::SchemeObjectPtr arguments) {
+    long val = atoi(std::dynamic_pointer_cast<Scheme::Fixnum>(
+                        std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getValue()->getText().c_str());
+    arguments = std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCdr();
 
     while (not arguments->isEmptyList()) {
-        auto list = dynamic_cast<Scheme::Pair const*>(arguments);
+        auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
 
-        if (auto fixnum = dynamic_cast<Scheme::Fixnum const*>(list->getCar())) {
+        if (auto fixnum = std::dynamic_pointer_cast<Scheme::Fixnum>(list->getCar())) {
             long cur = atoi(fixnum->getValue()->getText().c_str());
 
             if (val > cur) {
@@ -193,19 +193,19 @@ Scheme::SchemeObject const* Scheme::gt_fixnum_builtin(const SchemeObject *argume
     return Scheme::Boolean::getTrue();
 }
 
-Scheme::SchemeObject const* Scheme::cons_builtin(const SchemeObject *arguments) {
-    auto list = dynamic_cast<Scheme::Pair const*>(arguments);
-    return new Scheme::Pair(-1, -1, -1, -1, list->getCar(), list->getCadr());
+Scheme::SchemeObjectPtr Scheme::cons_builtin(Scheme::SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    return std::make_shared<Scheme::Pair>(-1, -1, -1, -1, list->getCar(), list->getCadr());
 }
 
-Scheme::SchemeObject const* Scheme::car_builtin(const SchemeObject *arguments) {
-    return dynamic_cast<Scheme::Pair const*>(arguments)->getCaar();
+Scheme::SchemeObjectPtr Scheme::car_builtin(Scheme::SchemeObjectPtr arguments) {
+    return std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCaar();
 }
 
-Scheme::SchemeObject const* Scheme::cdr_builtin(const SchemeObject *arguments) {
-    return dynamic_cast<Scheme::Pair const*>(arguments)->getCdar();
+Scheme::SchemeObjectPtr Scheme::cdr_builtin(Scheme::SchemeObjectPtr arguments) {
+    return std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCdar();
 }
 
-Scheme::SchemeObject const* Scheme::list_builtin(const SchemeObject *arguments) {
+Scheme::SchemeObjectPtr Scheme::list_builtin(Scheme::SchemeObjectPtr arguments) {
     return arguments;
 }

@@ -1,6 +1,6 @@
 #include "AST/Definition.h"
 
-Scheme::Definition::Definition(SchemeObject const* var, SchemeObject const* val) :
+Scheme::Definition::Definition(SchemeObjectPtr var, SchemeObjectPtr val) :
     Scheme::SchemeObject(Scheme::SchemeObject::DEFINE_TY),
     var_(var), val_(val)
 {
@@ -9,10 +9,10 @@ Scheme::Definition::Definition(SchemeObject const* var, SchemeObject const* val)
 Scheme::Definition::~Definition() {
 }
 
-Scheme::SchemeObject const* Scheme::Definition::getVariable() const {
+Scheme::SchemeObjectPtr Scheme::Definition::getVariable() const {
     return var_;
 }
 
-Scheme::SchemeObject const* Scheme::Definition::getValue() const {
+Scheme::SchemeObjectPtr Scheme::Definition::getValue() const {
     return val_;
 }

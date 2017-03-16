@@ -6,17 +6,17 @@
 namespace Scheme {
     class If : public SchemeObject {
     private:
-        SchemeObject const* predicate_;
-        SchemeObject const* consequent_;
-        SchemeObject const* alternative_;
+        SchemeObjectPtr predicate_;
+        SchemeObjectPtr consequent_;
+        SchemeObjectPtr alternative_;
 
     public:
-        If(SchemeObject const* predicate, SchemeObject const* consequent, SchemeObject const* alternative);
+        If(SchemeObjectPtr predicate, SchemeObjectPtr consequent, SchemeObjectPtr alternative);
         virtual ~If();
 
-        SchemeObject const* getPredicate() const;
-        SchemeObject const* getConsequent() const;
-        SchemeObject const* getAlternative() const;
+        SchemeObjectPtr getPredicate() const;
+        SchemeObjectPtr getConsequent() const;
+        SchemeObjectPtr getAlternative() const;
     };
 } // namespace Scheme
 

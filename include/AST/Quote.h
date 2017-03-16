@@ -6,11 +6,11 @@
 namespace Scheme {
 class Quote : public SchemeObject {
 private:
-    SchemeObject const* obj_;
+    SchemeObjectPtr obj_;
 public:
-    Quote(SchemeObject const* obj);
+    Quote(SchemeObjectPtr obj);
     virtual ~Quote();
-    SchemeObject const* getTextOfQuotation() const;
+    SchemeObjectPtr getTextOfQuotation() const;
 };
 } // namespace Scheme
 
