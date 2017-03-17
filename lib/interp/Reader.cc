@@ -118,8 +118,7 @@ Scheme::SchemeObjectPtr Scheme::Reader::readFixnumOrMinus() {
             nextChar();
         } while (isdigit(ch_));
 
-        return std::make_shared<Scheme::Fixnum>(
-                std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_FIXNUM));
+        return std::make_shared<Scheme::Fixnum>(atol(text.c_str()));
     }
 }
 
@@ -157,15 +156,15 @@ Scheme::SchemeObjectPtr Scheme::Reader::readBooleanOrCharacter() {
                         throw Scheme::ReaderException("incomplete character literal");
                     }
                 }
+
+                return std::make_shared<Scheme::Character>(' ');
             }
-            return std::make_shared<Scheme::Character>(
-                std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
+
+            return std::make_shared<Scheme::Character>('s');
 
         // '\n'
         case '\n':
-            text.append("newline");
-            return std::make_shared<Scheme::Character>(
-                    std::make_shared<Token>(line, scol, 1, text, Scheme::TokenType::T_CHAR));
+            return std::make_shared<Scheme::Character>('\n');
 
         // 'newline' or 'n'
         case 'n':
@@ -181,15 +180,16 @@ Scheme::SchemeObjectPtr Scheme::Reader::readBooleanOrCharacter() {
                         throw Scheme::ReaderException("incomplete character literal");
                     }
                 }
+
+                return std::make_shared<Scheme::Character>('\n');
             }
-            return std::make_shared<Scheme::Character>(
-                std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
+
+            return std::make_shared<Scheme::Character>('n');
 
         default:
             text.push_back(ch_);
             nextChar(); // eat this character
-            return std::make_shared<Scheme::Character>(
-                std::make_shared<Token>(line, scol, text.size(), text, Scheme::TokenType::T_CHAR));
+            return std::make_shared<Scheme::Character>(text[2]);
         }
     }
 

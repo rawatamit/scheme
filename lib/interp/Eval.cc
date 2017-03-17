@@ -87,7 +87,7 @@ Scheme::SchemeObjectPtr Scheme::eval(Scheme::SchemeObjectPtr obj,
     }
     
     // something went wrong
-    throw new EvalException("error evaluating scheme form");
+    throw EvalException("error evaluating scheme form");
 }
 
 Scheme::SchemeObjectPtr Scheme::listOfValues(Scheme::SchemeObjectPtr obj,

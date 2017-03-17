@@ -31,6 +31,14 @@ Scheme::SchemeObjectPtr Scheme::Pair::getEmptyList(int start_line, int start_col
                 end_line, end_col));
 }
 
+void Scheme::Pair::setCar(Scheme::SchemeObjectPtr ncar) {
+    car_ = ncar;
+}
+
+void Scheme::Pair::setCdr(Scheme::SchemeObjectPtr ncdr) {
+    cdr_ = ncdr;
+}
+
 Scheme::SchemeObjectPtr Scheme::Pair::getCar() const {
     return car_;
 }

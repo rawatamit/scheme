@@ -7,11 +7,11 @@
 namespace Scheme {
 class Character : public SchemeObject {
 private:
-    std::shared_ptr<Token> value_;
+    char value_;
 public:
-    Character(std::shared_ptr<Token> value);
+    Character(char value);
     virtual ~Character();
-    std::shared_ptr<Token> getValue() const;
+    char getValue() const;
 };
 } // namespace Scheme
 

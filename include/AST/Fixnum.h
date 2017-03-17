@@ -7,11 +7,12 @@
 namespace Scheme {
 class Fixnum : public SchemeObject {
 private:
-    std::shared_ptr<Token> value_;
+    long value_;
+
 public:
-    Fixnum(std::shared_ptr<Token> value);
+    Fixnum(long value);
     virtual ~Fixnum();
-    std::shared_ptr<Token> getValue() const;
+    long getValue() const;
 };
 } // namespace Scheme
 

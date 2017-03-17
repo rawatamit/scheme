@@ -31,7 +31,12 @@ namespace Scheme {
     DECLARE_PROC(is_pair_builtin);
     DECLARE_PROC(is_procedure_builtin);
 
-    //DECLARE_PROC(char_to_fixnum_builtin);
+    DECLARE_PROC(char_to_fixnum_builtin);
+    DECLARE_PROC(fixnum_to_char_builtin);
+    DECLARE_PROC(symbol_to_string_builtin);
+    DECLARE_PROC(string_to_symbol_builtin);
+    DECLARE_PROC(fixnum_to_string_builtin);
+    DECLARE_PROC(string_to_fixnum_builtin);
 
     DECLARE_PROC(add_builtin);
     DECLARE_PROC(sub_builtin);
@@ -45,7 +50,11 @@ namespace Scheme {
     DECLARE_PROC(cons_builtin);
     DECLARE_PROC(car_builtin);
     DECLARE_PROC(cdr_builtin);
+    DECLARE_PROC(set_car_builtin);
+    DECLARE_PROC(set_cdr_builtin);
     DECLARE_PROC(list_builtin);
+
+    DECLARE_PROC(eq_builtin);
 } // namespace Scheme
 
 #endif // PROCEDURE_H

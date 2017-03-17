@@ -22,6 +22,9 @@ public:
     virtual ~Pair();
     static SchemeObjectPtr getEmptyList(int start_line, int start_col,
                                               int end_line, int end_col);
+
+    void setCar(SchemeObjectPtr ncar);
+    void setCdr(SchemeObjectPtr ncdr);
     SchemeObjectPtr getCar() const;
     SchemeObjectPtr getCdr() const;
     SchemeObjectPtr getCaar() const;

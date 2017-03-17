@@ -8,7 +8,7 @@
 
 namespace {
 void printFixnum(Scheme::SchemeObjectPtr obj, std::ostream& out) {
-    out << std::dynamic_pointer_cast<Scheme::Fixnum>(obj)->getValue()->getText();
+    out << std::dynamic_pointer_cast<Scheme::Fixnum>(obj)->getValue();
 }
 
 void printBoolean(Scheme::SchemeObjectPtr obj, std::ostream& out) {
@@ -16,7 +16,14 @@ void printBoolean(Scheme::SchemeObjectPtr obj, std::ostream& out) {
 }
 
 void printCharacter(Scheme::SchemeObjectPtr obj, std::ostream& out) {
-    out << std::dynamic_pointer_cast<Scheme::Character>(obj)->getValue()->getText();
+    char val = std::dynamic_pointer_cast<Scheme::Character>(obj)->getValue();
+
+    out << "#\\";
+    switch (val) {
+        case '\n': out << "newline"; break;
+        case ' ': out << "space"; break;
+        default: out << val; break;
+    }
 }
 
 void printString(Scheme::SchemeObjectPtr obj, std::ostream& out) {

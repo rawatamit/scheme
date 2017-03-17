@@ -1,13 +1,12 @@
 #include "AST/Character.h"
 
-Scheme::Character::Character(std::shared_ptr<Token> value) :
+Scheme::Character::Character(char value) :
     SchemeObject(Scheme::SchemeObject::CHARACTER_TY), value_(value)
-{
-}
+{}
 
 Scheme::Character::~Character() {
 }
 
-std::shared_ptr<Scheme::Token> Scheme::Character::getValue() const {
+char Scheme::Character::getValue() const {
     return value_;
 }
