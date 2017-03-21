@@ -5,6 +5,8 @@
 #include "AST/Character.h"
 #include "AST/Symbol.h"
 #include "AST/String.h"
+#include "AST/SchemeEnvironment.h"
+#include "interp/EvalException.h"
 
 Scheme::Procedure::Procedure(Scheme::Procedure::FunctionType f) :
     Scheme::SchemeObject(Scheme::SchemeObject::PROC_TY),
@@ -20,6 +22,32 @@ Scheme::Procedure::FunctionType Scheme::Procedure::getFunction() const
 }
 
 // builtins
+Scheme::SchemeObjectPtr Scheme::apply_builtin(SchemeObjectPtr arguments) {
+    throw EvalException("error: apply builtin body directly called");
+}
+
+Scheme::SchemeObjectPtr Scheme::eval_builtin(SchemeObjectPtr arguments) {
+    throw EvalException("error: eval builtin body directly called");
+}
+
+extern std::shared_ptr<Scheme::Environment> TOPLEVEL_ENV;
+
+Scheme::SchemeObjectPtr Scheme::interaction_env_builtin(SchemeObjectPtr arguments) {
+    return std::make_shared<SchemeEnvironment>(TOPLEVEL_ENV);
+}
+
+Scheme::SchemeObjectPtr Scheme::null_env_builtin(SchemeObjectPtr arguments) {
+    return std::make_shared<SchemeEnvironment>();
+}
+
+extern void install_primitives(std::shared_ptr<Scheme::Environment> env);
+
+Scheme::SchemeObjectPtr Scheme::env_builtin(SchemeObjectPtr arguments) {
+    auto env = std::make_shared<SchemeEnvironment>();
+    install_primitives(env->getEnvironment());
+    return env;
+}
+
 #define TYPE_PREDICATE(NAME, PREDICATE) Scheme::SchemeObjectPtr Scheme::NAME(Scheme::SchemeObjectPtr arguments) { \
     return std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar()->PREDICATE() ? Scheme::Boolean::getTrue() \
                                                                                       : Scheme::Boolean::getFalse(); \
@@ -196,7 +224,7 @@ Scheme::SchemeObjectPtr Scheme::gt_fixnum_builtin(Scheme::SchemeObjectPtr argume
 
 Scheme::SchemeObjectPtr Scheme::cons_builtin(Scheme::SchemeObjectPtr arguments) {
     auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
-    return std::make_shared<Scheme::Pair>(-1, -1, -1, -1, list->getCar(), list->getCadr());
+    return std::make_shared<Scheme::Pair>(list->getCar(), list->getCadr());
 }
 
 Scheme::SchemeObjectPtr Scheme::car_builtin(Scheme::SchemeObjectPtr arguments) {
@@ -207,19 +235,16 @@ Scheme::SchemeObjectPtr Scheme::cdr_builtin(Scheme::SchemeObjectPtr arguments) {
     return std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCdar();
 }
 
-static Scheme::SchemeObjectPtr ok_symbol = std::make_shared<Scheme::Symbol>(
-                                            std::make_shared<Scheme::Token>(-1, -1, 2, "ok", Scheme::T_SYMBOL));
-
 Scheme::SchemeObjectPtr Scheme::set_car_builtin(Scheme::SchemeObjectPtr arguments) {
     auto obj = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
     std::dynamic_pointer_cast<Scheme::Pair>(obj->getCar())->setCar(obj->getCadr());
-    return ok_symbol;
+    return SchemeObject::ok_symbol;
 }
 
 Scheme::SchemeObjectPtr Scheme::set_cdr_builtin(Scheme::SchemeObjectPtr arguments) {
     auto obj = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
     std::dynamic_pointer_cast<Scheme::Pair>(obj->getCar())->setCdr(obj->getCadr());
-    return ok_symbol;
+    return SchemeObject::ok_symbol;
 }
 
 Scheme::SchemeObjectPtr Scheme::list_builtin(Scheme::SchemeObjectPtr arguments) {

@@ -22,6 +22,12 @@ namespace Scheme {
 
 #define DECLARE_PROC(NAME) SchemeObjectPtr NAME(SchemeObjectPtr arguments);
 
+    DECLARE_PROC(apply_builtin);
+    DECLARE_PROC(eval_builtin);
+    DECLARE_PROC(interaction_env_builtin);
+    DECLARE_PROC(null_env_builtin);
+    DECLARE_PROC(env_builtin);
+
     DECLARE_PROC(is_null_builtin);
     DECLARE_PROC(is_boolean_builtin);
     DECLARE_PROC(is_symbol_builtin);

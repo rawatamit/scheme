@@ -1,4 +1,17 @@
 #include "AST/SchemeObject.h"
+#include "AST/Symbol.h"
+
+Scheme::SchemeObjectPtr Scheme::SchemeObject::lambda_symbol = std::make_shared<Scheme::Symbol>(
+        std::make_shared<Scheme::Token>(-1, -1, 6, "lambda", Scheme::T_SYMBOL));
+
+Scheme::SchemeObjectPtr Scheme::SchemeObject::ok_symbol = std::make_shared<Scheme::Symbol>(
+                                            std::make_shared<Scheme::Token>(-1, -1, 2, "ok", Scheme::T_SYMBOL));
+
+Scheme::SchemeObjectPtr Scheme::SchemeObject::begin_symbol = std::make_shared<Scheme::Symbol>(
+        std::make_shared<Scheme::Token>(-1, -1, 5, "begin", Scheme::T_SYMBOL));
+
+Scheme::SchemeObjectPtr Scheme::SchemeObject::else_symbol = std::make_shared<Scheme::Symbol>(
+        std::make_shared<Scheme::Token>(-1, -1, 4, "else", Scheme::T_SYMBOL));
 
 Scheme::SchemeObject::SchemeObject(Scheme::SchemeObject::ObjectTy type) :
     type_(type)
@@ -56,5 +69,17 @@ bool Scheme::SchemeObject::isIf() const {
 }
 
 bool Scheme::SchemeObject::isProcedure() const {
+    return isPrimitiveProcedure() or isCompoundProcedure();
+}
+
+bool Scheme::SchemeObject::isPrimitiveProcedure() const {
     return getType() == PROC_TY;
+}
+
+bool Scheme::SchemeObject::isCompoundProcedure() const {
+    return getType() == COMP_PROC_TY;
+}
+
+bool Scheme::SchemeObject::isEnvironment() const {
+    return getType() == ENV_TY;
 }

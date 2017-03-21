@@ -6,10 +6,10 @@
 
 namespace Scheme {
     Scheme::SchemeObjectPtr eval(Scheme::SchemeObjectPtr obj,
-                                 std::shared_ptr<Scheme::Environment> env);
+                                 Scheme::EnvironmentPtr env);
 
     Scheme::SchemeObjectPtr listOfValues(Scheme::SchemeObjectPtr obj,
-                                         std::shared_ptr<Scheme::Environment> env);
+                                         Scheme::EnvironmentPtr env);
 } // namespace Scheme
 
 #endif

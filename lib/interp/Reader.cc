@@ -1,3 +1,4 @@
+#include <AST/CompoundProcedure.h>
 #include "interp/Reader.h"
 #include "interp/ReaderException.h"
 #include "AST/Fixnum.h"
@@ -33,6 +34,18 @@ Scheme::SchemeObjectPtr Scheme::Reader::read() {
     skipWhitespace(); // start with a valid character
 
     switch (ch_) {
+    case ';':
+        while (ch_ != '\n' and ch_ != EOF)  {
+            nextChar();
+        }
+
+        if (ch_ == EOF) {
+            eof_ = true;
+            return nullptr;
+        }
+
+        nextChar(); // consume new line
+        return read();
     case '-':
         return readFixnumOrMinus();
     case '#':
@@ -244,13 +257,13 @@ Scheme::SchemeObjectPtr Scheme::Reader::processPair(Scheme::SchemeObjectPtr obj)
             }
         } else if (name == "define") {
             if (auto list = std::dynamic_pointer_cast<Scheme::Pair>(pair->getCdr())) {
-                Scheme::SchemeObjectPtr var = list->getCar();
-                Scheme::SchemeObjectPtr val = list->getCadr();
-
-                if (var == nullptr or val == nullptr) {
-                    throw Scheme::ReaderException("define form not proper");
+                if (list->getCar()->isSymbol()) {
+                    return std::make_shared<Scheme::Definition>(list->getCar(), list->getCadr());
                 } else {
-                    return std::make_shared<Scheme::Definition>(var, val);
+                    return std::make_shared<Scheme::Definition>(
+                            list->getCaar(),
+                            std::make_shared<Scheme::Pair>(SchemeObject::lambda_symbol,
+                                                           std::make_shared<Scheme::Pair>(list->getCdar(), list->getCdr())));
                 }
             } else {
                 throw Scheme::ReaderException("define form not proper");
@@ -294,7 +307,7 @@ Scheme::SchemeObjectPtr Scheme::Reader::readPair(int start_line, int start_col) 
     skipWhitespace();
 
     if (ch_ == ')') {
-        auto empty_list = Scheme::Pair::getEmptyList(start_line, start_col, line_, column_);
+        auto empty_list = Scheme::Pair::getEmptyList();//start_line, start_col, line_, column_);
         nextChar(); // skip ')'
         return empty_list;
     }
@@ -308,7 +321,7 @@ Scheme::SchemeObjectPtr Scheme::Reader::readPair(int start_line, int start_col) 
             Scheme::SchemeObjectPtr cdr = read();
             skipWhitespace();
             if (ch_ == ')') {
-                auto pair = std::make_shared<Scheme::Pair>(start_line, start_col, line_, column_, car, cdr);
+                auto pair = std::make_shared<Scheme::Pair>(car, cdr);//start_line, start_col, line_, column_, car, cdr);
                 nextChar(); // skip ')'
                 return pair;
             } else {
@@ -319,7 +332,7 @@ Scheme::SchemeObjectPtr Scheme::Reader::readPair(int start_line, int start_col) 
         }
     } else { // read proper list
         Scheme::SchemeObjectPtr cdr = readPair(start_line, start_col);
-        return std::make_shared<Scheme::Pair>(start_line, start_col, line_, column_, car, cdr);
+        return std::make_shared<Scheme::Pair>(car, cdr);//start_line, start_col, line_, column_, car, cdr);
     }
 }
 

@@ -1,33 +1,41 @@
 #include "interp/Environment.h"
 
 Scheme::Environment::Environment() {
-    globalframe_ = std::make_shared<Frame>(nullptr);
-    currentframe_ = globalframe_;
+    frame_ = std::make_shared<Frame>(nullptr);
+}
+
+Scheme::Environment::Environment(EnvironmentPtr env) {
+    frame_ = std::make_shared<Frame>(env->getCurrentFrame());
 }
 
 Scheme::Environment::~Environment() {
 }
 
 std::shared_ptr<Scheme::Frame> Scheme::Environment::getCurrentFrame() {
-    return currentframe_;
+    return frame_;
 }
 
 std::shared_ptr<Scheme::Frame> Scheme::Environment::getCurrentFrame() const {
-    return currentframe_;
-}
-
-std::shared_ptr<Scheme::Frame> Scheme::Environment::getGlobalFrame() {
-    return globalframe_;
-}
-
-std::shared_ptr<Scheme::Frame> Scheme::Environment::getGlobalFrame() const {
-    return globalframe_;
+    return frame_;
 }
 
 void Scheme::Environment::beginFrame() {
-    currentframe_ = std::make_shared<Frame>(currentframe_);
+    frame_ = std::make_shared<Frame>(frame_);
 }
 
 void Scheme::Environment::endFrame() {
-    currentframe_ = currentframe_->getEnclosingFrame();
+    frame_ = frame_->getEnclosingFrame();
+}
+
+namespace Scheme {
+    std::ostream& operator<<(std::ostream &out, const Scheme::Environment &env) {
+        unsigned long tab = 0;
+
+        for (auto frame = env.getCurrentFrame(); frame != nullptr; frame = frame->getEnclosingFrame()) {
+            out << std::string(" ", tab) << *frame << '\n';
+            tab += 4;
+        }
+
+        return out;
+    }
 }

@@ -1,19 +1,12 @@
 #include "AST/Pair.h"
 
-Scheme::Pair::Pair(Scheme::SchemeObject::ObjectTy type,
-                   int start_line, int start_col,
-                   int end_line, int end_col) :
-    SchemeObject(type),
-    start_line_(start_line), start_col_(start_col),
-    end_line_(end_line), end_col_(end_col)
+Scheme::Pair::Pair(Scheme::SchemeObject::ObjectTy type) :
+    SchemeObject(type)
 {
 }
 
-Scheme::Pair::Pair(int start_line, int start_col, int end_line, int end_col,
-                   SchemeObjectPtr car, SchemeObjectPtr cdr) :
+Scheme::Pair::Pair(SchemeObjectPtr car, SchemeObjectPtr cdr) :
     SchemeObject(Scheme::SchemeObject::PAIR_TY),
-    start_line_(start_line), start_col_(start_col),
-    end_line_(end_line), end_col_(end_col),
     car_(car), cdr_(cdr)
 {
 }
@@ -21,14 +14,9 @@ Scheme::Pair::Pair(int start_line, int start_col, int end_line, int end_col,
 Scheme::Pair::~Pair() {
 }
 
-Scheme::SchemeObjectPtr Scheme::Pair::getEmptyList(int start_line, int start_col,
-                                               int end_line, int end_col)
+Scheme::SchemeObjectPtr Scheme::Pair::getEmptyList()
 {
-    return std::shared_ptr<Pair>(
-            new Pair(
-                Scheme::SchemeObject::EMPTYLIST_TY,
-                start_line, start_col,
-                end_line, end_col));
+    return std::shared_ptr<Pair>(new Pair(Scheme::SchemeObject::EMPTYLIST_TY));
 }
 
 void Scheme::Pair::setCar(Scheme::SchemeObjectPtr ncar) {
@@ -74,6 +62,22 @@ Scheme::SchemeObjectPtr Scheme::Pair::getCadr() const {
 Scheme::SchemeObjectPtr Scheme::Pair::getCddr() const {
     if (auto cdr = std::dynamic_pointer_cast<Scheme::Pair>(getCdr())) {
         return cdr->getCdr();
+    }
+
+    return nullptr;
+}
+
+Scheme::SchemeObjectPtr Scheme::Pair::getCdadr() const {
+    if (auto cadr = std::dynamic_pointer_cast<Scheme::Pair>(getCadr())) {
+        return cadr->getCdr();
+    }
+
+    return nullptr;
+}
+
+Scheme::SchemeObjectPtr Scheme::Pair::getCaadr() const {
+    if (auto cadr = std::dynamic_pointer_cast<Scheme::Pair>(getCadr())) {
+        return cadr->getCar();
     }
 
     return nullptr;

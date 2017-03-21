@@ -7,21 +7,14 @@
 namespace Scheme {
 class Pair : public SchemeObject {
 private:
-    int start_line_, start_col_;
-    int end_line_, end_col_;
     SchemeObjectPtr car_;
     SchemeObjectPtr cdr_;
     
-    Pair(Scheme::SchemeObject::ObjectTy type,
-         int start_line, int start_col,
-         int end_line, int end_col);
+    Pair(Scheme::SchemeObject::ObjectTy type);
 public:
-    Pair(int start_line, int start_col,
-         int end_line, int end_col,
-         SchemeObjectPtr car, SchemeObjectPtr cdr);
+    Pair(SchemeObjectPtr car, SchemeObjectPtr cdr);
     virtual ~Pair();
-    static SchemeObjectPtr getEmptyList(int start_line, int start_col,
-                                              int end_line, int end_col);
+    static SchemeObjectPtr getEmptyList();
 
     void setCar(SchemeObjectPtr ncar);
     void setCdr(SchemeObjectPtr ncdr);
@@ -31,6 +24,8 @@ public:
     SchemeObjectPtr getCdar() const;
     SchemeObjectPtr getCadr() const;
     SchemeObjectPtr getCddr() const;
+    SchemeObjectPtr getCdadr() const;
+    SchemeObjectPtr getCaadr() const;
     SchemeObjectPtr getCaddr() const;
     SchemeObjectPtr getCdddr() const;
     SchemeObjectPtr getCadddr() const;

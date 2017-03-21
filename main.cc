@@ -13,6 +13,12 @@
     } while(0)
 
 void install_primitives(std::shared_ptr<Scheme::Environment> env) {
+    INSTALL_PROC(env, "apply", Scheme::apply_builtin);
+    INSTALL_PROC(env, "eval", Scheme::eval_builtin);
+    INSTALL_PROC(env, "interaction-environment", Scheme::interaction_env_builtin);
+    INSTALL_PROC(env, "null-environment", Scheme::null_env_builtin);
+    INSTALL_PROC(env, "environment", Scheme::env_builtin);
+
     INSTALL_PROC(env, "null?", Scheme::is_null_builtin);
     INSTALL_PROC(env, "boolean?", Scheme::is_boolean_builtin);
     INSTALL_PROC(env, "symbol?", Scheme::is_symbol_builtin);
@@ -48,12 +54,13 @@ void install_primitives(std::shared_ptr<Scheme::Environment> env) {
     INSTALL_PROC(env, "eq?", Scheme::eq_builtin);
 }
 
+auto TOPLEVEL_ENV = std::make_shared<Scheme::Environment>();
+
 int main(int argc, char **argv) {
     Scheme::Reader reader(std::cin, "<stdin>");
-    auto env = std::make_shared<Scheme::Environment>();
 
     // install primitive procedures
-    install_primitives(env);
+    install_primitives(TOPLEVEL_ENV);
 
     try {
         while (not reader.isEof()) {
@@ -63,7 +70,7 @@ int main(int argc, char **argv) {
             // FIXME: fix the try catch block
             if (obj) {
                 try {
-                    auto val = eval(obj, env);
+                    auto val = eval(obj, TOPLEVEL_ENV);
                     if (val) {
                         print(val, std::cout);
                         std::cout << '\n';

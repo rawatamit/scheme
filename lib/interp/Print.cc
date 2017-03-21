@@ -95,6 +95,12 @@ void Scheme::print(Scheme::SchemeObjectPtr obj, std::ostream& out) {
     case Scheme::SchemeObject::PROC_TY:
         out << "#<primitive>";
         break;
+    case Scheme::SchemeObject::COMP_PROC_TY:
+        out << "#<procedure>";
+        break;
+    case Scheme::SchemeObject::ENV_TY:
+        out << "#<environment>";
+        break;
     default:
         break;
     }

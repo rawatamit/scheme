@@ -1,5 +1,7 @@
 #include "interp/Frame.h"
 #include "interp/EnvironmentException.h"
+#include "interp/Print.h"
+#include <sstream>
 
 Scheme::Frame::Frame(std::shared_ptr<Scheme::Frame> enclosingframe) :
     enclosingframe_(enclosingframe)
@@ -70,6 +72,24 @@ void Scheme::Frame::redefine(const std::string& var, Scheme::SchemeObjectPtr val
     if (it != symtab_.end()) {
         it->second = val;
     } else {
-        throw EnvironmentException("unbound variable");
+        std::string msg{"unbound variable: "};
+        msg.append(var);
+        throw EnvironmentException(msg);
+    }
+}
+
+namespace Scheme {
+    std::ostream &operator<<(std::ostream &out, const Scheme::Frame &frame) {
+        std::stringstream ss;
+
+        for (auto it : frame.getSymtab()) {
+            if (not it.second->isPrimitiveProcedure()) {
+                ss << it.first << ':';
+                print(it.second, ss);
+                ss << ';';
+            }
+        }
+
+        return out << ss.str();
     }
 }
