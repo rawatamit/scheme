@@ -28,7 +28,7 @@ namespace Scheme {
         void define(const std::string& var, Scheme::SchemeObjectPtr val);
         void redefine(const std::string& var, Scheme::SchemeObjectPtr val);
 
-        friend std::ostream& operator<<(std::ostream& out, const Frame& frame);
+        //friend std::ostream& operator<<(std::ostream& out, const Frame& frame);
     };
 } // namespace Scheme
 

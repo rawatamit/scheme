@@ -27,6 +27,7 @@ void Scheme::Environment::endFrame() {
     frame_ = frame_->getEnclosingFrame();
 }
 
+/*
 namespace Scheme {
     std::ostream& operator<<(std::ostream &out, const Scheme::Environment &env) {
         unsigned long tab = 0;
@@ -39,3 +40,4 @@ namespace Scheme {
         return out;
     }
 }
+*/

@@ -61,6 +61,22 @@ namespace Scheme {
     DECLARE_PROC(list_builtin);
 
     DECLARE_PROC(eq_builtin);
+
+    DECLARE_PROC(load_builtin);
+    DECLARE_PROC(read_builtin);
+    DECLARE_PROC(read_char_builtin);
+    DECLARE_PROC(peek_char_builtin);
+    DECLARE_PROC(eof_object_builtin);
+    DECLARE_PROC(input_port_builtin);
+    DECLARE_PROC(open_input_port_builtin);
+    DECLARE_PROC(close_input_port_builtin);
+
+    DECLARE_PROC(write_builtin);
+    DECLARE_PROC(write_char_builtin);
+    DECLARE_PROC(output_port_builtin);
+    DECLARE_PROC(open_output_port_builtin);
+    DECLARE_PROC(close_output_port_builtin);
+    DECLARE_PROC(error_builtin);
 } // namespace Scheme
 
 #endif // PROCEDURE_H

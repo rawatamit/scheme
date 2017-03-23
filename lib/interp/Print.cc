@@ -7,66 +7,68 @@
 #include "AST/Symbol.h"
 
 namespace {
-void printFixnum(Scheme::SchemeObjectPtr obj, std::ostream& out) {
-    out << std::dynamic_pointer_cast<Scheme::Fixnum>(obj)->getValue();
+void printFixnum(Scheme::SchemeObjectPtr obj, FILE* out) {
+    fprintf(out, "%ld", std::dynamic_pointer_cast<Scheme::Fixnum>(obj)->getValue());
 }
 
-void printBoolean(Scheme::SchemeObjectPtr obj, std::ostream& out) {
-    out << std::dynamic_pointer_cast<Scheme::Boolean>(obj)->getValue()->getText();
+void printBoolean(Scheme::SchemeObjectPtr obj, FILE* out) {
+    fprintf(out, "%s", std::dynamic_pointer_cast<Scheme::Boolean>(obj)->getValue()->getText().c_str());
 }
 
-void printCharacter(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+void printCharacter(Scheme::SchemeObjectPtr obj, FILE* out) {
     char val = std::dynamic_pointer_cast<Scheme::Character>(obj)->getValue();
 
-    out << "#\\";
+    fprintf(out, "#\\");
     switch (val) {
-        case '\n': out << "newline"; break;
-        case ' ': out << "space"; break;
-        default: out << val; break;
+        case '\n': fprintf(out, "%s", "newline"); break;
+        case ' ': fprintf(out, "%s", "space"); break;
+        default: fprintf(out, "%c", val); break;
     }
 }
 
-void printString(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+void printString(Scheme::SchemeObjectPtr obj, FILE* out) {
     auto str = std::dynamic_pointer_cast<Scheme::String>(obj);
-    out << '"';
+
+    fprintf(out, "%c", '"');
     for (char ch : str->getValue()->getText()) {
         switch (ch) {
         case '\\':
-            out << "\\\\";
+            fprintf(out, "%s", "\\\\");
             break;
         case '\n':
-            out << "\\n";
+            fprintf(out, "%s", "\\n");
             break;
         case '"':
-            out << "\\\"";
+            fprintf(out, "%s", "\\\"");
             break;
         default:
-            out << ch;
+            fprintf(out, "%c", ch);
             break;
         }
     }
-    out << '"';
+
+    fprintf(out, "%c", '"');
 }
 
-void printPair(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+void printPair(Scheme::SchemeObjectPtr obj, FILE* out) {
     auto pair = std::dynamic_pointer_cast<Scheme::Pair>(obj);
     print(pair->getCar(), out); // print car
     Scheme::SchemeObjectPtr cdr = pair->getCdr();
     if (cdr->isPair()) {
-        out << ' ';
+        fprintf(out, "%c", ' ');
         printPair(std::dynamic_pointer_cast<Scheme::Pair>(cdr), out);
     } else if (not cdr->isEmptyList()) {
-        out << " . ";
+        fprintf(out, "%s", " . ");
         print(cdr, out);
     }
 }
 
-void printSymbol(Scheme::SchemeObjectPtr obj, std::ostream& out) {
-    out << std::dynamic_pointer_cast<Scheme::Symbol>(obj)->getValue()->getText();
+void printSymbol(Scheme::SchemeObjectPtr obj, FILE* out) {
+    fprintf(out, "%s", std::dynamic_pointer_cast<Scheme::Symbol>(obj)->getValue()->getText().c_str());
 }
 } // anonymous namespace
 
-void Scheme::print(Scheme::SchemeObjectPtr obj, std::ostream& out) {
+void Scheme::print(Scheme::SchemeObjectPtr obj, FILE* out) {
     switch (obj->getType()) {
     case Scheme::SchemeObject::FIXNUM_TY:
         printFixnum(obj, out);
@@ -81,27 +83,34 @@ void Scheme::print(Scheme::SchemeObjectPtr obj, std::ostream& out) {
         printString(obj, out);
         break;
     case Scheme::SchemeObject::EMPTYLIST_TY:
-        out << "()";
+        fprintf(out, "%s", "()");
         //printPair(dynamic_cast<Scheme::Pair const*>(obj), out);
         break;
     case Scheme::SchemeObject::PAIR_TY:
-        out << '(';
+        fprintf(out, "%c", '(');
         printPair(obj, out);
-        out << ')';
+        fprintf(out, "%c", ')');
         break;
     case Scheme::SchemeObject::SYMBOL_TY:
         printSymbol(obj, out);
         break;
     case Scheme::SchemeObject::PROC_TY:
-        out << "#<primitive>";
+        fprintf(out, "%s", "#<primitive>");
         break;
     case Scheme::SchemeObject::COMP_PROC_TY:
-        out << "#<procedure>";
+        fprintf(out, "%s", "#<procedure>");
         break;
     case Scheme::SchemeObject::ENV_TY:
-        out << "#<environment>";
+        fprintf(out, "%s", "#<environment>");
+        break;
+    case Scheme::SchemeObject::INPUT_PORT_TY:
+        fprintf(out, "%s", "#<input-port>");
+        break;
+    case Scheme::SchemeObject::OUTPUT_PORT_TY:
+        fprintf(out, "%s", "#<output-port>");
         break;
     default:
+        fprintf(out, "%s:%d", "#<unknown-object>", obj->getType());
         break;
     }
 }

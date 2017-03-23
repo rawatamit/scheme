@@ -1,6 +1,6 @@
-#include <AST/CompoundProcedure.h>
 #include "interp/Reader.h"
 #include "interp/ReaderException.h"
+#include "AST/CompoundProcedure.h"
 #include "AST/Fixnum.h"
 #include "AST/Boolean.h"
 #include "AST/Character.h"
@@ -12,14 +12,13 @@
 #include "AST/Redefinition.h"
 #include "AST/If.h"
 
-Scheme::Reader::Reader(std::istream& in, const std::string& description) :
+Scheme::Reader::Reader(FILE* in, const std::string& description) :
     ch_(' '), line_(1), column_(0), eof_(false),
     in_(in), description_(description)
-{
-}
+{}
 
-Scheme::Reader::~Reader() {
-}
+Scheme::Reader::~Reader()
+{}
 
 bool Scheme::Reader::isEof() const {
     return eof_;
@@ -34,18 +33,6 @@ Scheme::SchemeObjectPtr Scheme::Reader::read() {
     skipWhitespace(); // start with a valid character
 
     switch (ch_) {
-    case ';':
-        while (ch_ != '\n' and ch_ != EOF)  {
-            nextChar();
-        }
-
-        if (ch_ == EOF) {
-            eof_ = true;
-            return nullptr;
-        }
-
-        nextChar(); // consume new line
-        return read();
     case '-':
         return readFixnumOrMinus();
     case '#':
@@ -76,7 +63,7 @@ Scheme::SchemeObjectPtr Scheme::Reader::read() {
 }
 
 int Scheme::Reader::nextChar() {
-    ch_ = in_.get();
+    ch_ = fgetc(in_);
 
     if (ch_ == '\n') {
         ++line_;
@@ -97,8 +84,15 @@ void Scheme::Reader::consume(int c) {
 }
 
 void Scheme::Reader::skipWhitespace() {
-    while (isspace(ch_))
-        nextChar();
+    while (ch_ != EOF and (isspace(ch_) or ch_ == ';')) {
+        if (isspace(ch_)) {
+            nextChar();
+        } else if (ch_ == ';') {
+            while (ch_ != '\n' and ch_ != EOF)  {
+                nextChar();
+            }
+        }
+    }
 }
 
 bool Scheme::Reader::isInitial(int c) const {

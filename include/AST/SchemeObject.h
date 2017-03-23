@@ -14,6 +14,7 @@ namespace Scheme {
         static SchemeObjectPtr ok_symbol;
         static SchemeObjectPtr begin_symbol;
         static SchemeObjectPtr else_symbol;
+        static SchemeObjectPtr eof_symbol;
 
         enum ObjectTy {
             FIXNUM_TY = 0,
@@ -30,6 +31,8 @@ namespace Scheme {
             PROC_TY,
             COMP_PROC_TY,
             ENV_TY,
+            INPUT_PORT_TY,
+            OUTPUT_PORT_TY,
         };
 
         SchemeObject(ObjectTy type);
@@ -67,6 +70,10 @@ namespace Scheme {
         bool isCompoundProcedure() const;
 
         bool isEnvironment() const;
+
+        bool isInputPort() const;
+
+        bool isOutputPort() const;
 
     private:
         ObjectTy type_; // type of this object

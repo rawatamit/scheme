@@ -13,12 +13,15 @@ Scheme::SchemeObjectPtr Scheme::SchemeObject::begin_symbol = std::make_shared<Sc
 Scheme::SchemeObjectPtr Scheme::SchemeObject::else_symbol = std::make_shared<Scheme::Symbol>(
         std::make_shared<Scheme::Token>(-1, -1, 4, "else", Scheme::T_SYMBOL));
 
+Scheme::SchemeObjectPtr Scheme::SchemeObject::eof_symbol = std::make_shared<Scheme::Symbol>(
+        std::make_shared<Scheme::Token>(-1, -1, 3, "eof", Scheme::T_SYMBOL));
+
 Scheme::SchemeObject::SchemeObject(Scheme::SchemeObject::ObjectTy type) :
     type_(type)
 {}
 
-Scheme::SchemeObject::~SchemeObject() {
-}
+Scheme::SchemeObject::~SchemeObject()
+{}
 
 Scheme::SchemeObject::ObjectTy Scheme::SchemeObject::getType() const {
     return type_;
@@ -82,4 +85,12 @@ bool Scheme::SchemeObject::isCompoundProcedure() const {
 
 bool Scheme::SchemeObject::isEnvironment() const {
     return getType() == ENV_TY;
+}
+
+bool Scheme::SchemeObject::isInputPort() const {
+    return getType() == INPUT_PORT_TY;
+}
+
+bool Scheme::SchemeObject::isOutputPort() const {
+    return getType() == OUTPUT_PORT_TY;
 }

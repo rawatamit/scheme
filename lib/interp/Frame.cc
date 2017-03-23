@@ -78,6 +78,7 @@ void Scheme::Frame::redefine(const std::string& var, Scheme::SchemeObjectPtr val
     }
 }
 
+/*
 namespace Scheme {
     std::ostream &operator<<(std::ostream &out, const Scheme::Frame &frame) {
         std::stringstream ss;
@@ -93,3 +94,4 @@ namespace Scheme {
         return out << ss.str();
     }
 }
+*/

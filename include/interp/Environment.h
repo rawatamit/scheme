@@ -19,7 +19,7 @@ namespace Scheme {
         void beginFrame();
         void endFrame();
 
-        friend std::ostream& operator<<(std::ostream& out, const Environment& env);
+        //friend std::ostream& operator<<(std::ostream& out, const Environment& env);
     };
 
     typedef std::shared_ptr<Environment> EnvironmentPtr;

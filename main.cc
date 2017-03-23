@@ -52,12 +52,29 @@ void install_primitives(std::shared_ptr<Scheme::Environment> env) {
     INSTALL_PROC(env, "list", Scheme::list_builtin);
 
     INSTALL_PROC(env, "eq?", Scheme::eq_builtin);
+
+    // input/output routines
+    INSTALL_PROC(env, "load", Scheme::load_builtin);
+    INSTALL_PROC(env, "read", Scheme::read_builtin);
+    INSTALL_PROC(env, "read-char", Scheme::read_char_builtin);
+    INSTALL_PROC(env, "peek-char", Scheme::peek_char_builtin);
+    INSTALL_PROC(env, "eof-object?", Scheme::eof_object_builtin);
+    INSTALL_PROC(env, "input-port?", Scheme::input_port_builtin);
+    INSTALL_PROC(env, "open-input-port", Scheme::open_input_port_builtin);
+    INSTALL_PROC(env, "close-input-port", Scheme::close_input_port_builtin);
+
+    INSTALL_PROC(env, "write", Scheme::write_builtin);
+    INSTALL_PROC(env, "write-char", Scheme::write_char_builtin);
+    INSTALL_PROC(env, "output-port?", Scheme::output_port_builtin);
+    INSTALL_PROC(env, "open-output-port", Scheme::open_output_port_builtin);
+    INSTALL_PROC(env, "close-output-port", Scheme::close_output_port_builtin);
+    INSTALL_PROC(env, "error", Scheme::error_builtin);
 }
 
 auto TOPLEVEL_ENV = std::make_shared<Scheme::Environment>();
 
 int main(int argc, char **argv) {
-    Scheme::Reader reader(std::cin, "<stdin>");
+    Scheme::Reader reader(stdin, "<stdin>");
 
     // install primitive procedures
     install_primitives(TOPLEVEL_ENV);
@@ -72,7 +89,7 @@ int main(int argc, char **argv) {
                 try {
                     auto val = eval(obj, TOPLEVEL_ENV);
                     if (val) {
-                        print(val, std::cout);
+                        print(val, stdout);
                         std::cout << '\n';
                     }
                 } catch (std::runtime_error& e) {

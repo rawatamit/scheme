@@ -6,7 +6,13 @@
 #include "AST/Symbol.h"
 #include "AST/String.h"
 #include "AST/SchemeEnvironment.h"
+#include "AST/InputPort.h"
+#include "AST/OutputPort.h"
+#include "interp/Reader.h"
+#include "interp/Print.h"
+#include "interp/Eval.h"
 #include "interp/EvalException.h"
+#include "interp/ReaderException.h"
 
 Scheme::Procedure::Procedure(Scheme::Procedure::FunctionType f) :
     Scheme::SchemeObject(Scheme::SchemeObject::PROC_TY),
@@ -279,4 +285,167 @@ Scheme::SchemeObjectPtr Scheme::eq_builtin(Scheme::SchemeObjectPtr arguments) {
         default:
             return a == b ? Scheme::Boolean::getTrue() : Scheme::Boolean::getFalse();
     }
+}
+
+Scheme::SchemeObjectPtr Scheme::load_builtin(Scheme::SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    auto& filename = std::dynamic_pointer_cast<Scheme::String>(list->getCar())->getValue()->getText();
+    auto instream = fopen(filename.c_str(), "r");
+
+    if (instream) {
+        Scheme::Reader reader(instream, filename);
+        Scheme::SchemeObjectPtr res = nullptr;
+
+        while (not reader.isEof()) {
+            auto obj = reader.read();
+
+            if (obj) {
+                res = eval(obj, TOPLEVEL_ENV);
+            } else {
+                //throw ReaderException("error in input");
+            }
+        }
+
+        return res;
+    } else {
+        std::string msg{"error reading file: "};
+        msg.append(filename);
+        throw ReaderException(msg);
+    }
+}
+
+Scheme::SchemeObjectPtr Scheme::read_builtin(Scheme::SchemeObjectPtr arguments) {
+    FILE* instream = arguments->isEmptyList()
+                        ? stdin
+                        : std::dynamic_pointer_cast<Scheme::InputPort>(
+                            std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getInputStream();
+
+    Scheme::Reader reader(instream, "stdin/file");
+    auto obj = reader.read();
+    return obj == nullptr ? Scheme::SchemeObject::eof_symbol : obj;
+}
+
+Scheme::SchemeObjectPtr Scheme::read_char_builtin(Scheme::SchemeObjectPtr arguments) {
+    FILE* instream = arguments->isEmptyList()
+                     ? stdin
+                     : std::dynamic_pointer_cast<Scheme::InputPort>(
+                    std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getInputStream();
+
+    int ch = fgetc(instream);
+    return ch == EOF ? Scheme::SchemeObject::eof_symbol : std::make_shared<Scheme::Character>(ch);
+}
+
+Scheme::SchemeObjectPtr Scheme::peek_char_builtin(Scheme::SchemeObjectPtr arguments) {
+    FILE* instream = arguments->isEmptyList()
+                     ? stdin
+                     : std::dynamic_pointer_cast<Scheme::InputPort>(
+                    std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getInputStream();
+
+    int ch = fgetc(instream);
+    ungetc(ch, instream);
+    return ch == EOF ? Scheme::SchemeObject::eof_symbol : std::make_shared<Scheme::Character>(ch);
+}
+
+Scheme::SchemeObjectPtr Scheme::eof_object_builtin(SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+
+    if (auto arg = std::dynamic_pointer_cast<Scheme::Symbol>(list->getCar())) {
+        return arg->getValue()->getText() == "eof" ? Scheme::Boolean::getTrue() : Scheme::Boolean::getFalse();
+    } else {
+        return Scheme::Boolean::getFalse();
+    }
+}
+
+Scheme::SchemeObjectPtr Scheme::input_port_builtin(SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    return list->getCar()->isInputPort() ? Scheme::Boolean::getTrue() : Scheme::Boolean::getFalse();
+}
+
+Scheme::SchemeObjectPtr Scheme::open_input_port_builtin(SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    auto filename = std::dynamic_pointer_cast<Scheme::String>(list->getCar())->getValue()->getText();
+    FILE* instream = fopen(filename.c_str(), "r");
+
+    if (instream) {
+        return std::make_shared<Scheme::InputPort>(instream);
+    } else {
+        std::string msg{"error opening file: "};
+        msg.append(filename);
+        throw std::runtime_error(msg);
+    }
+}
+
+Scheme::SchemeObjectPtr Scheme::close_input_port_builtin(SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    auto inport = std::dynamic_pointer_cast<Scheme::InputPort>(list->getCar());
+
+    if (inport->closeInputStream() == EOF) {
+        throw std::runtime_error("error closing input port");
+    } else {
+        return Scheme::SchemeObject::ok_symbol;
+    }
+}
+
+Scheme::SchemeObjectPtr Scheme::write_builtin(Scheme::SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    FILE* outstream = list->getCdr()->isEmptyList()
+                     ? stdout
+                     : std::dynamic_pointer_cast<Scheme::OutputPort>(list->getCadr())->getOutputStream();
+
+    print(list->getCar(), outstream);
+    fflush(outstream);
+    return Scheme::SchemeObject::ok_symbol;
+}
+
+Scheme::SchemeObjectPtr Scheme::write_char_builtin(Scheme::SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    FILE* outstream = list->getCdr()->isEmptyList()
+                      ? stdout
+                      : std::dynamic_pointer_cast<Scheme::OutputPort>(list->getCadr())->getOutputStream();
+
+    fputc(std::dynamic_pointer_cast<Scheme::Character>(list->getCar())->getValue(), outstream);
+    fflush(outstream);
+    return Scheme::SchemeObject::ok_symbol;
+}
+
+Scheme::SchemeObjectPtr Scheme::output_port_builtin(SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    return list->getCar()->isOutputPort() ? Scheme::Boolean::getTrue() : Scheme::Boolean::getFalse();
+}
+
+Scheme::SchemeObjectPtr Scheme::open_output_port_builtin(SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    auto filename = std::dynamic_pointer_cast<Scheme::String>(list->getCar())->getValue()->getText();
+    FILE* outstream = fopen(filename.c_str(), "w");
+
+    if (outstream) {
+        return std::make_shared<Scheme::OutputPort>(outstream);
+    } else {
+        std::string msg{"error opening file: "};
+        msg.append(filename);
+        throw std::runtime_error(msg);
+    }
+}
+
+Scheme::SchemeObjectPtr Scheme::close_output_port_builtin(SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+    auto outport = std::dynamic_pointer_cast<Scheme::OutputPort>(list->getCar());
+
+    if (outport->closeOutputStream() == EOF) {
+        throw std::runtime_error("error closing output port");
+    } else {
+        return Scheme::SchemeObject::ok_symbol;
+    }
+}
+
+Scheme::SchemeObjectPtr Scheme::error_builtin(SchemeObjectPtr arguments) {
+    auto list = std::dynamic_pointer_cast<Scheme::Pair>(arguments);
+
+    while (not list->isEmptyList()) {
+        print(list->getCar(), stderr);
+        fprintf(stderr, "%s", " ");
+        list = std::dynamic_pointer_cast<Scheme::Pair>(list->getCdr());
+    }
+
+    throw std::runtime_error("error: exiting");
 }

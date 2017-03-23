@@ -2,10 +2,10 @@
 #define PRINT_H
 
 #include "AST/SchemeObject.h"
-#include <ostream>
+#include <cstdio>
 
 namespace Scheme {
-void print(Scheme::SchemeObjectPtr obj, std::ostream& out);
+void print(Scheme::SchemeObjectPtr obj, FILE* out);
 } // namespace Scheme
 
 #endif

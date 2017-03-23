@@ -6,4 +6,5 @@ add_library(AST
             Character.cc String.cc
             Pair.cc Symbol.cc
             If.cc Quote.cc Definition.cc Redefinition.cc
-            Procedure.cc CompoundProcedure.cc CompoundProcedure.cc ../../include/AST/CompoundProcedure.h)
+            Procedure.cc CompoundProcedure.cc CompoundProcedure.cc
+            InputPort.cc OutputPort.cc)

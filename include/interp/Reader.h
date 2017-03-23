@@ -4,7 +4,7 @@
 #include "interp/Token.h"
 #include "AST/SchemeObject.h"
 #include <string>
-#include <istream>
+#include <cstdio>
 
 namespace Scheme {
 class Reader {
@@ -13,7 +13,7 @@ private:
     int line_;
     int column_;
     bool eof_;
-    std::istream& in_;
+    FILE* in_;
     std::string const& description_;
 
     int nextChar();
@@ -27,8 +27,9 @@ private:
     Scheme::SchemeObjectPtr readPair(int start_line, int start_col);
     Scheme::SchemeObjectPtr processPair(Scheme::SchemeObjectPtr obj);
     Scheme::SchemeObjectPtr readSymbol();
+
 public:
-    Reader(std::istream& in_, std::string const& description);
+    Reader(FILE* in_, std::string const& description);
     virtual ~Reader();
     bool isEof() const;
     Scheme::SchemeObjectPtr read();
