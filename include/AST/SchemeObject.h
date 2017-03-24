@@ -10,6 +10,8 @@ namespace Scheme {
     class SchemeObject {
     public:
         // some useful symbols
+        static SchemeObjectPtr quote_symbol;
+        static SchemeObjectPtr if_symbol;
         static SchemeObjectPtr lambda_symbol;
         static SchemeObjectPtr ok_symbol;
         static SchemeObjectPtr begin_symbol;
@@ -24,10 +26,6 @@ namespace Scheme {
             EMPTYLIST_TY,
             PAIR_TY,
             SYMBOL_TY,
-            QUOTE_TY,
-            DEFINE_TY,
-            REDEFINE_TY,
-            IF_TY,
             PROC_TY,
             COMP_PROC_TY,
             ENV_TY,
@@ -54,14 +52,6 @@ namespace Scheme {
         bool isPair() const;
 
         bool isSymbol() const;
-
-        bool isQuote() const;
-
-        bool isDefinition() const;
-
-        bool isRedefinition() const;
-
-        bool isIf() const;
 
         bool isProcedure() const;
 

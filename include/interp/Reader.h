@@ -25,7 +25,6 @@ private:
     Scheme::SchemeObjectPtr readBooleanOrCharacter();
     Scheme::SchemeObjectPtr readString();
     Scheme::SchemeObjectPtr readPair(int start_line, int start_col);
-    Scheme::SchemeObjectPtr processPair(Scheme::SchemeObjectPtr obj);
     Scheme::SchemeObjectPtr readSymbol();
 
 public:

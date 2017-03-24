@@ -5,6 +5,5 @@ add_library(AST
             Fixnum.cc Boolean.cc
             Character.cc String.cc
             Pair.cc Symbol.cc
-            If.cc Quote.cc Definition.cc Redefinition.cc
             Procedure.cc CompoundProcedure.cc CompoundProcedure.cc
             InputPort.cc OutputPort.cc)

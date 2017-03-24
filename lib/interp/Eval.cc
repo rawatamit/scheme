@@ -3,10 +3,6 @@
 #include "AST/Boolean.h"
 #include "AST/Symbol.h"
 #include "AST/Pair.h"
-#include "AST/Quote.h"
-#include "AST/Definition.h"
-#include "AST/Redefinition.h"
-#include "AST/If.h"
 #include "AST/SchemeEnvironment.h"
 #include "interp/Eval.h"
 #include "interp/EvalException.h"
@@ -31,6 +27,22 @@ namespace {
         }
 
         return false;
+    }
+
+    bool isQuote(Scheme::SchemeObjectPtr obj) {
+        return isTagged(obj, "quote");
+    }
+
+    bool isIf(Scheme::SchemeObjectPtr obj) {
+        return isTagged(obj, "if");
+    }
+
+    bool isDefinition(Scheme::SchemeObjectPtr obj) {
+        return isTagged(obj, "define");
+    }
+
+    bool isRedefinition(Scheme::SchemeObjectPtr obj) {
+        return isTagged(obj, "set!");
     }
 
     bool isLambda(Scheme::SchemeObjectPtr obj) {
@@ -65,6 +77,19 @@ namespace {
         return obj->isEmptyList() or std::dynamic_pointer_cast<Scheme::Pair>(obj)->getCdr()->isEmptyList();
     }
 
+    Scheme::SchemeObjectPtr textOfQuotation(Scheme::SchemeObjectPtr obj) {
+        auto list = std::dynamic_pointer_cast<Scheme::Pair>(obj);
+
+        if (list->getCdr() == nullptr) {
+            throw Scheme::EvalException("quote form not proper");
+        } else if (list->getCdr()->isEmptyList()) {
+            return list->getCdr();
+        } else {
+            auto pcdr = std::dynamic_pointer_cast<Scheme::Pair>(list->getCdr());
+            return pcdr->getCar();
+        }
+    }
+
     Scheme::SchemeObjectPtr getOperator(Scheme::SchemeObjectPtr obj) {
         return std::dynamic_pointer_cast<Scheme::Pair>(obj)->getCar();
     }
@@ -79,8 +104,8 @@ namespace {
         } else if (isLastExpression(seq)) {
             return std::dynamic_pointer_cast<Scheme::Pair>(seq)->getCar();
         } else {
-            return std::make_shared<Scheme::Pair>(Scheme::SchemeObject::begin_symbol,
-                                                  std::make_shared<Scheme::Pair>(seq, Scheme::Pair::getEmptyList()));
+            return Scheme::Pair::cons(Scheme::SchemeObject::begin_symbol,
+                                      Scheme::Pair::cons(seq, Scheme::Pair::getEmptyList()));
         }
     }
 
@@ -115,9 +140,11 @@ namespace {
                     throw Scheme::EvalException("else clause isn't last cond->if");
                 }
             } else {
-                return std::make_shared<Scheme::If>(cond_predicate(first),
-                                                    sequence_to_exp(cond_actions(first)),
-                                                    expand_clauses(rest));
+                return Scheme::Pair::cons(Scheme::SchemeObject::if_symbol,
+                            Scheme::Pair::cons(cond_predicate(first),
+                                Scheme::Pair::cons(sequence_to_exp(cond_actions(first)),
+                                    Scheme::Pair::cons(expand_clauses(rest),
+                                        Scheme::Pair::getEmptyList()))));
             }
         }
     }
@@ -133,8 +160,8 @@ namespace {
     Scheme::SchemeObjectPtr bindings_parameters(Scheme::SchemeObjectPtr obj) {
         auto list = std::dynamic_pointer_cast<Scheme::Pair>(obj);
         return list->isEmptyList() ? list
-                                   : std::make_shared<Scheme::Pair>(binding_parameter(list->getCar()),
-                                                                    bindings_parameters(list->getCdr()));
+                                   : Scheme::Pair::cons(binding_parameter(list->getCar()),
+                                                        bindings_parameters(list->getCdr()));
     }
 
     Scheme::SchemeObjectPtr binding_argument(Scheme::SchemeObjectPtr obj) {
@@ -144,18 +171,17 @@ namespace {
     Scheme::SchemeObjectPtr bindings_arguments(Scheme::SchemeObjectPtr obj) {
         auto list = std::dynamic_pointer_cast<Scheme::Pair>(obj);
         return list->isEmptyList() ? list
-                                   : std::make_shared<Scheme::Pair>(binding_argument(list->getCar()),
-                                                                    bindings_arguments(list->getCdr()));
+                                   : Scheme::Pair::cons(binding_argument(list->getCar()),
+                                                        bindings_arguments(list->getCdr()));
     }
 
     Scheme::SchemeObjectPtr let_to_application(Scheme::SchemeObjectPtr obj) {
         auto list = std::dynamic_pointer_cast<Scheme::Pair>(obj);
         auto parameters = bindings_parameters(list->getCadr());
         auto arguments = bindings_arguments(list->getCadr());
-        return std::make_shared<Scheme::Pair>(
-                std::make_shared<Scheme::Pair>(
-                    Scheme::SchemeObject::lambda_symbol,
-                    std::make_shared<Scheme::Pair>(parameters, list->getCddr())),
+        return Scheme::Pair::cons(
+                Scheme::Pair::cons(Scheme::SchemeObject::lambda_symbol,
+                    Scheme::Pair::cons(parameters, list->getCddr())),
                 arguments);
     }
 
@@ -204,23 +230,56 @@ tailcall:
             msg.append(var->getValue()->getText());
             throw EvalException(msg);
         }
-    } else if (obj->isQuote()) {
-        return std::dynamic_pointer_cast<Scheme::Quote>(obj)->getTextOfQuotation();
-    } else if (obj->isDefinition()) {
-        auto def = std::dynamic_pointer_cast<Scheme::Definition>(obj);
-        auto val = eval(def->getValue(), env);
-        auto var = std::dynamic_pointer_cast<Scheme::Symbol>(def->getVariable());
-        env->getCurrentFrame()->define(var->getValue()->getText(), val);
-        return val;
-    } else if (obj->isRedefinition()) {
-        auto redef = std::dynamic_pointer_cast<Scheme::Redefinition>(obj);
-        auto val = eval(redef->getValue(), env);
-        auto var = std::dynamic_pointer_cast<Scheme::Symbol>(redef->getVariable());
-        env->getCurrentFrame()->redefine(var->getValue()->getText(), val);
-        return val;
-    } else if (obj->isIf()) {
-        auto ifform = std::dynamic_pointer_cast<Scheme::If>(obj);
-        auto predval = eval(ifform->getPredicate(), env);
+    } else if (isQuote(obj)) {
+        return textOfQuotation(obj);
+    } else if (isDefinition(obj)) {
+        auto pair = std::dynamic_pointer_cast<Scheme::Pair>(obj);
+
+        if (auto list = std::dynamic_pointer_cast<Scheme::Pair>(pair->getCdr())) {
+            if (list->getCar()->isSymbol()) {
+                auto var = std::dynamic_pointer_cast<Scheme::Symbol>(list->getCar())->getValue()->getText();
+                auto val = eval(list->getCadr(), env);
+                env->getCurrentFrame()->define(var, val);
+                return val;
+            } else {
+                auto var = std::dynamic_pointer_cast<Scheme::Symbol>(list->getCaar())->getValue()->getText();
+                auto val = eval(Scheme::Pair::cons(SchemeObject::lambda_symbol,
+                                                   Scheme::Pair::cons(list->getCdar(), list->getCdr())), env);
+                env->getCurrentFrame()->define(var, val);
+                return val;
+            }
+        } else {
+            throw Scheme::EvalException("define form not proper");
+        }
+    } else if (isRedefinition(obj)) {
+        auto pair = std::dynamic_pointer_cast<Scheme::Pair>(obj);
+
+        if (auto list = std::dynamic_pointer_cast<Scheme::Pair>(pair->getCdr())) {
+            auto var = std::dynamic_pointer_cast<Scheme::Symbol>(list->getCar());
+            auto val = list->getCadr();
+
+            if (var == nullptr or val == nullptr) {
+                throw Scheme::EvalException("set! form not proper");
+            } else {
+                val = eval(val, env);
+                env->getCurrentFrame()->redefine(var->getValue()->getText(), val);
+                return val;
+            }
+        } else {
+            throw Scheme::EvalException("set! form not proper");
+        }
+    } else if (isIf(obj)) {
+        auto pair = std::dynamic_pointer_cast<Scheme::Pair>(obj);
+        auto list = std::dynamic_pointer_cast<Scheme::Pair>(pair->getCdr());
+        Scheme::SchemeObjectPtr predicate = list->getCar();
+        Scheme::SchemeObjectPtr consequent = list->getCadr();
+        Scheme::SchemeObjectPtr alternative = list->getCaddr();
+
+        if (predicate == nullptr or consequent == nullptr) {
+            throw Scheme::EvalException("if form not proper");
+        }
+
+        auto predval = eval(predicate, env);
 
         // if the predicate returned a boolean value
         // check whether it is false, if so then the condition is false
@@ -229,17 +288,17 @@ tailcall:
             if (boolval->isFalse()) {
                 // if this if form has a non-null alternative,
                 // evaluate it, else return the false value
-                obj = ifform->getAlternative() == nullptr ? Scheme::Boolean::getFalse()
-                                                           : ifform->getAlternative();
+                obj = alternative == nullptr ? Scheme::Boolean::getFalse()
+                                             : alternative;
                 goto tailcall;
             } else {
                 // return the consequent after evaluating
-                obj = ifform->getConsequent();
+                obj = consequent;
                 goto tailcall;
             }
         } else {
             // return the consequent after evaluating
-            obj = ifform->getConsequent();
+            obj = consequent;
             goto tailcall;
         }
     } else if (isBegin(obj)) {
@@ -352,13 +411,12 @@ tailcall:
             }
 
             // evaluate the body of this procedure as a begin form
-            obj = std::make_shared<Scheme::Pair>(Scheme::SchemeObject::begin_symbol,
-                                                       cproc->getBody());
+            obj = Scheme::Pair::cons(Scheme::SchemeObject::begin_symbol, cproc->getBody());
             env = nenv;
             goto tailcall;
         }
     }
-    
+
     // something went wrong
     throw EvalException("error evaluating scheme form");
 }
@@ -370,6 +428,6 @@ Scheme::SchemeObjectPtr Scheme::listOfValues(Scheme::SchemeObjectPtr obj,
         return obj;
     } else {
         auto list = std::dynamic_pointer_cast<Scheme::Pair>(obj);
-        return std::make_shared<Scheme::Pair>(eval(list->getCar(), env), listOfValues(list->getCdr(), env));
+        return Scheme::Pair::cons(eval(list->getCar(), env), listOfValues(list->getCdr(), env));
     }
 }

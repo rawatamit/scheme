@@ -15,6 +15,7 @@ public:
     Pair(SchemeObjectPtr car, SchemeObjectPtr cdr);
     virtual ~Pair();
     static SchemeObjectPtr getEmptyList();
+    static SchemeObjectPtr cons(SchemeObjectPtr car, SchemeObjectPtr cdr);
 
     void setCar(SchemeObjectPtr ncar);
     void setCdr(SchemeObjectPtr ncdr);

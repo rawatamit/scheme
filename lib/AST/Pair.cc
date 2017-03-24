@@ -2,21 +2,23 @@
 
 Scheme::Pair::Pair(Scheme::SchemeObject::ObjectTy type) :
     SchemeObject(type)
-{
-}
+{}
 
 Scheme::Pair::Pair(SchemeObjectPtr car, SchemeObjectPtr cdr) :
     SchemeObject(Scheme::SchemeObject::PAIR_TY),
     car_(car), cdr_(cdr)
-{
-}
+{}
 
-Scheme::Pair::~Pair() {
-}
+Scheme::Pair::~Pair()
+{}
 
 Scheme::SchemeObjectPtr Scheme::Pair::getEmptyList()
 {
     return std::shared_ptr<Pair>(new Pair(Scheme::SchemeObject::EMPTYLIST_TY));
+}
+
+Scheme::SchemeObjectPtr Scheme::Pair::cons(Scheme::SchemeObjectPtr car, Scheme::SchemeObjectPtr cdr) {
+    return std::make_shared<Pair>(car, cdr);
 }
 
 void Scheme::Pair::setCar(Scheme::SchemeObjectPtr ncar) {

@@ -84,7 +84,6 @@ void Scheme::print(Scheme::SchemeObjectPtr obj, FILE* out) {
         break;
     case Scheme::SchemeObject::EMPTYLIST_TY:
         fprintf(out, "%s", "()");
-        //printPair(dynamic_cast<Scheme::Pair const*>(obj), out);
         break;
     case Scheme::SchemeObject::PAIR_TY:
         fprintf(out, "%c", '(');

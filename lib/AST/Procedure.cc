@@ -28,27 +28,27 @@ Scheme::Procedure::FunctionType Scheme::Procedure::getFunction() const
 }
 
 // builtins
-Scheme::SchemeObjectPtr Scheme::apply_builtin(SchemeObjectPtr arguments) {
+Scheme::SchemeObjectPtr Scheme::apply_builtin(SchemeObjectPtr) {
     throw EvalException("error: apply builtin body directly called");
 }
 
-Scheme::SchemeObjectPtr Scheme::eval_builtin(SchemeObjectPtr arguments) {
+Scheme::SchemeObjectPtr Scheme::eval_builtin(SchemeObjectPtr) {
     throw EvalException("error: eval builtin body directly called");
 }
 
 extern std::shared_ptr<Scheme::Environment> TOPLEVEL_ENV;
 
-Scheme::SchemeObjectPtr Scheme::interaction_env_builtin(SchemeObjectPtr arguments) {
+Scheme::SchemeObjectPtr Scheme::interaction_env_builtin(SchemeObjectPtr) {
     return std::make_shared<SchemeEnvironment>(TOPLEVEL_ENV);
 }
 
-Scheme::SchemeObjectPtr Scheme::null_env_builtin(SchemeObjectPtr arguments) {
+Scheme::SchemeObjectPtr Scheme::null_env_builtin(SchemeObjectPtr) {
     return std::make_shared<SchemeEnvironment>();
 }
 
 extern void install_primitives(std::shared_ptr<Scheme::Environment> env);
 
-Scheme::SchemeObjectPtr Scheme::env_builtin(SchemeObjectPtr arguments) {
+Scheme::SchemeObjectPtr Scheme::env_builtin(SchemeObjectPtr) {
     auto env = std::make_shared<SchemeEnvironment>();
     install_primitives(env->getEnvironment());
     return env;
@@ -329,7 +329,7 @@ Scheme::SchemeObjectPtr Scheme::read_char_builtin(Scheme::SchemeObjectPtr argume
     FILE* instream = arguments->isEmptyList()
                      ? stdin
                      : std::dynamic_pointer_cast<Scheme::InputPort>(
-                    std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getInputStream();
+                        std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getInputStream();
 
     int ch = fgetc(instream);
     return ch == EOF ? Scheme::SchemeObject::eof_symbol : std::make_shared<Scheme::Character>(ch);
@@ -339,7 +339,7 @@ Scheme::SchemeObjectPtr Scheme::peek_char_builtin(Scheme::SchemeObjectPtr argume
     FILE* instream = arguments->isEmptyList()
                      ? stdin
                      : std::dynamic_pointer_cast<Scheme::InputPort>(
-                    std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getInputStream();
+                        std::dynamic_pointer_cast<Scheme::Pair>(arguments)->getCar())->getInputStream();
 
     int ch = fgetc(instream);
     ungetc(ch, instream);

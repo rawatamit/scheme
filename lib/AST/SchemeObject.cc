@@ -1,6 +1,12 @@
 #include "AST/SchemeObject.h"
 #include "AST/Symbol.h"
 
+Scheme::SchemeObjectPtr Scheme::SchemeObject::quote_symbol = std::make_shared<Scheme::Symbol>(
+        std::make_shared<Scheme::Token>(-1, -1, 5, "quote", Scheme::T_SYMBOL));
+
+Scheme::SchemeObjectPtr Scheme::SchemeObject::if_symbol = std::make_shared<Scheme::Symbol>(
+        std::make_shared<Scheme::Token>(-1, -1, 2, "if", Scheme::T_SYMBOL));
+
 Scheme::SchemeObjectPtr Scheme::SchemeObject::lambda_symbol = std::make_shared<Scheme::Symbol>(
         std::make_shared<Scheme::Token>(-1, -1, 6, "lambda", Scheme::T_SYMBOL));
 
@@ -53,22 +59,6 @@ bool Scheme::SchemeObject::isPair() const {
 
 bool Scheme::SchemeObject::isSymbol() const {
     return getType() == SYMBOL_TY;
-}
-
-bool Scheme::SchemeObject::isQuote() const {
-    return getType() == QUOTE_TY;
-}
-
-bool Scheme::SchemeObject::isDefinition() const {
-    return getType() == DEFINE_TY;
-}
-
-bool Scheme::SchemeObject::isRedefinition() const {
-    return getType() == REDEFINE_TY;
-}
-
-bool Scheme::SchemeObject::isIf() const {
-    return getType() == IF_TY;
 }
 
 bool Scheme::SchemeObject::isProcedure() const {
